@@ -11,14 +11,52 @@ The project is based on the RFID Gen2 Reader available at https://github.com/ran
 
 ## Installation
 
-- install log4cpp (http://log4cpp.sourceforge.net/)
-- install UHD driver + GNU Radio using **wget http://www.sbrac.org/files/build-gnuradio && chmod a+x ./build-gnuradio && ./build-gnuradio**
-- cd Gen2-UHF-RFID-Reader/gr-rfid/  
-- mkdir build  
-- cd build/  
-- cmake ../ (logging should be enabled)  
-- sudo make install  
-- sudo ldconfig  
+**This script has been modified and only supports up to Ubuntu 18.X due to python 2.7, qt4 and deprecation of GNURadio 3.7.X on Ubuntu 20.04.**
+
+- Install log4cpp (http://log4cpp.sourceforge.net/)
+- Using build-script will automatically fetch, build and install the following:
+> UHD driver + GNU Radio + SoapySDR + Gen2 UHF RFID Reader
+> rtl-sdr + gr-osmosdr + gr-iqbal + hackrf + bladeRF + airspyone_host
+
+- Grant permissions **chmod a+x ./build-script**
+- Execute with the following flags **./build-script -ja -v**
+
+Usage: build-script [--help|-h] [-v|--verbose] [-jN] [-ja] 
+                      [-l|--logfile logfile ] [-u|--users ulist] [-m] funcs
+
+-m             - Use HEAD of *master* branch, rather than *maint*.
+
+-v|--verbose   - turn on verbose logging to stdout
+
+-jN            - have make use N concurrent jobs
+
+-ja            - have make use N concurrent jobs with auto setting of N
+                 (based on number of cpu cores on build system)
+                 
+
+-u|--users ul  - add comma-separated users to 'usrp' group in addition
+                 to calling user ( $USER )
+
+-l|--logfile lf - log messages to 'lf'
+-ut <tag>       - set tag for UHD checkout to <tag>
+-ucf <ucflags>  - set UHD CMake flags to <ucflags>
+-gt <tag>       - set tag for Gnu Radio checkout to <tag>
+-gcf <gcflags>  - set Gnu Radio CMake flags to <gcflags>
+-e|--extras     - add an item to "extras" to be built after Gnu Radio/UHD/gs-osmosdr
+
+Available funcs:
+
+all             - do all functions
+prereqs         - install prerequisites
+gitfetch        - use GIT to fetch Gnu Radio and UHD
+uhd_build       - build only UHD
+firmware        - fetch firmware/FPGA
+gnuradio_build  - build only Gnu Radio
+mod_groups      - modify the /etc/groups and add user to group 'usrp'
+mod_udev        - add UDEV rule for USRP1
+mod_sysctl      - modify SYSCTL for larger net buffers
+SoapySDR        - fetch and build SoapySDR
+G2RFID          - build Gen2 UHF RFID Reader
 
 ## Configuration
 
@@ -98,8 +136,8 @@ https://github.com/nkargas/Gen2-UHF-RFID-Reader/issues/10
   - 2x circular polarized antennas  
 
 ## Tested on:
-  Ubuntu 14.04 64-bit  
-  GNU Radio 3.7.4
+  Ubuntu 18.04.5 LTS 64-bit  
+  GNU Radio 3.7.14
   
 ## If you use this software please cite:
 N. Kargas, F. Mavromatis and A. Bletsas, "Fully-Coherent Reader with Commodity SDR for Gen2 FM0 and Computational RFID", IEEE Wireless Communications Letters (WCL), Vol. 4, No. 6, pp. 617-620, Dec. 2015. 
