@@ -11,15 +11,21 @@ The project is based on the RFID Gen2 Reader available at https://github.com/ran
 
 ## Installation
 
-**This script has been modified and only supports up to Ubuntu 18.X due to python 2.7, qt4 and deprecation of GNURadio 3.7.X on Ubuntu 20.04.**
+## **This script has been modified and only supports up to Ubuntu 18.X due to python 2.7, qt4 and deprecation of GNURadio 3.7.X on Ubuntu 20.04.**
 
 - Install log4cpp (http://log4cpp.sourceforge.net/)
 - Using build-script will automatically fetch, build and install the following:
-> UHD driver + GNU Radio + SoapySDR + Gen2 UHF RFID Reader
+> UHD driver + GNU Radio + SoapySDR + Gen2 UHF RFID Reader +
 > rtl-sdr + gr-osmosdr + gr-iqbal + hackrf + bladeRF + airspyone_host
 
-- Grant permissions **chmod a+x ./build-script**
-- Execute with the following flags **./build-script -ja -v**
+- Grant permissions 
+```sh
+chmod a+x ./build-script
+```
+- Execute with the following flags 
+```sh
+./build-script -ja -v
+```
 
 Usage: build-script [--help|-h] [-v|--verbose] [-jN] [-ja] 
                       [-l|--logfile logfile ] [-u|--users ulist] [-m] funcs
