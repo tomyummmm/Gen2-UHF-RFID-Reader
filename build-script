@@ -681,159 +681,6 @@ function uhd_build {
 	my_echo Done building/installing UHD
 }
 
-function rtl_build {
-	#
-	# RTL build
-	#
-	sudocheck
-	cd "$CWD"
-	if [ ! -d rtl-sdr ]
-	then
-		my_echo you do not appear to have the \'rtl-sdr\' directory
-		my_echo you should probably use $0 gitfetch to fetch the appropriate
-		my_echo files using GIT
-		doexit BUILD-RTL-NOT-THERE
-	fi
-	
-	my_echo -n Building rtl-sdr...
-	cd rtl-sdr
-	rm -rf build
-	mkdir -p build
-	cd build
-	cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 -DINSTALL_UDEV_RULES=ON ../ >>$LOGDEV 2>&1
-	make clean >>$LOGDEV 2>&1
-	make $JFLAG >>$LOGDEV 2>&1
-
-	if [ $? -ne 0  ]
-	then
-		my_echo rtl-sdr build apparently failed
-		my_echo Exiting rtl-sdr build
-		doexit RTL-BUILD-FAIL1
-	fi
-	sudo make $JFLAG install >>$LOGDEV 2>&1
-	my_echo Done building rtl-sdr
-	
-	cd "$CWD"
-	if [ -d hackrf ]
-	then
-		my_echo -n Building hackrf...
-		cd hackrf/host/
-		rm -rf build
-		mkdir -p build
-		cd build
-		cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 -DINSTALL_UDEV_RULES=ON ../ >>$LOGDEV 2>&1
-		make clean >>$LOGDEV 2>&1
-		make >>$LOGDEV 2>&1
-		if [ $? -ne 0 ]
-		then
-			my_echo hackrf build failed
-			my_echo Exiting hackrf build
-			doexit HACKRF-BUILD-FAIL1
-		else
-			sudo make install >>$LOGDEV 2>&1
-		fi
-		my_echo Done building hackrf
-		cd "$CWD"
-	fi
-
-	cd "$CWD"
-	if [ -d gr-iqbal ]
-	then
-		my_echo -n Building gr-iqbal...
-		cd gr-iqbal
-		rm -rf build
-		mkdir -p build
-		cd build
-		cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 ../ >>$LOGDEV 2>&1
-		make clean >>$LOGDEV 2>&1
-		make >>$LOGDEV 2>&1
-		if [ $? -ne 0 ]
-		then
-			my_echo gr-iqbal build apparently failed
-			my_echo Exiting gr-iqbal build
-			doexit IQBAL-BUILD-FAIL1
-		else
-			sudo make install  >>$LOGDEV 2>&1
-			my_echo Done building gr-iqbal
-			cd "$CWD"
-		fi
-	fi
-
-	if [ -d bladeRF  ]
-	then
-		my_echo -n Building bladeRF...
-		cd bladeRF
-		cd host
-		rm -rf build
-		mkdir -p build
-		cd build
-		cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 ../ >>$LOGDEV 2>&1
-		make clean >>$LOGDEV 2>&1
-		make >>$LOGDEV 2>&1
-		if [ $? -ne 0 ]
-		then
-			my_echo bladeRF build apparently failed
-			my_echo Exiting bladeRF build
-			doexit BLADERF-BUILD-FAIL1
-		else
-			sudo make install >>$LOGDEV 2>&1
-			my_echo Done building bladeRF
-			cd "$CWD"
-		fi
-	fi
-	
-	if [ -d airspyone_host ]
-	then
-		cd airspyone_host
-		rm -rf build
-		mkdir build
-		cd build
-		cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 -DINSTALL_UDEV_RULES=ON ../ >>$LOGDEV 2>&1
-		make clean >>$LOGDEV 2>&1
-		make >>$LOGDEV 2>&1
-		if [ $? -ne 0 ]
-		then
-			my_echo airspyone_host build apparently failed
-			my_echo Exiting airspyone_host build
-			doexit AIRSPYONE-BUILD-FAIL1
-		else
-			sudo make install >>$LOGDEV 2>&1
-			my_echo Done building airspyone_host
-			cd "$CWD"
-		fi
-	fi
-	
-	cd "$CWD"
-	if [ ! -d gr-osmosdr ]
-	then
-		my_echo you do not appear to have the \'gr-osmosdr\' directory
-		my_echo you should probably use $0 gitfetch to fetch the appropriate
-		my_echo files using GIT
-		doexit RTL-BUILD-FAIL2
-	fi
-	cd gr-osmosdr
-	my_echo -n Building gr-osmosdr...
-	rm -rf build
-	mkdir build
-	cd build
-	cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 ../ >>$LOGDEV  2>&1
-	make clean >>$LOGDEV 2>&1
-	make $JFLAG >>$LOGDEV 2>&1
-	
-	if [ $? -ne 0 ]
-	then
-		my_echo gr-osmosdr build apparently failed
-		my_echo Exit rtl-sdr/gr-osmosdr build
-		doexit OSMOSDR-BUILD-FAIL
-	fi
-	sudo make $JFLAG install >>$LOGDEV 2>&1
-	my_echo Done building gr-osmosdr
-	
-	cd "$CWD"
-	sudo ldconfig >>$LOGDEV 2>&1
-	my_echo Done building/installing rtl-sdr, gr-osmosdr, airspyone_host, bladeRF, hackrf, gr-iqbal.
-}
-
 function firmware {
 	sudocheck
 	FOUND_DOWNLOADER=False
@@ -949,71 +796,206 @@ function gnuradio_build {
 	my_echo Done
 }
 
-function do_an_extra {
-	if [ -e $1 ]
+function rtl_build {
+	#
+	# RTL build
+	#
+	sudocheck
+	cd "$CWD"
+	if [ ! -d rtl-sdr ]
 	then
-		my_echo Building extra module $1
-		cd $1
-		if [  -f CMakeLists.txt ]
-		then
-			mkdir -p build >>$LOGDEV 2>&1
-			cd build
-			cmake $CMAKE_FLAGS1 $CMAKE_FLAGS2 $CMAKE_FLAG3 ../ >>$LOGDEV 2>&1
-			make >>$LOGDEV 2>&1
-			sudo make install >>$LOGDEV 2>&1
-			sudo ldconfig
-		elif [ - bootstrap ]
-		then
-			chmod 755 bootstrap
-			./bootstrap  >>$LOGDEV 2>&1
-			PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/local/lib64/pkgconfig
-			./configure >>$LOGDEV 2>&1
-			make >>$LOGDEV 2>&1
-			sudo make install >>$LOGDEV 2>&1
-			sudo ldconfig
-		else
-			my_echo Couldnt determine how to make module $1 neither bootstrap nor CmakeLists.txt present
-		fi
-	else
-		my_echo Couldnt build module $1 directory not there
+		my_echo you do not appear to have the \'rtl-sdr\' directory
+		my_echo you should probably use $0 gitfetch to fetch the appropriate
+		my_echo files using GIT
+		doexit BUILD-RTL-NOT-THERE
 	fi
+	
+	my_echo -n Building rtl-sdr...
+	cd rtl-sdr
+	rm -rf build
+	mkdir -p build
+	cd build
+	cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 -DINSTALL_UDEV_RULES=ON ../ >>$LOGDEV 2>&1
+	make clean >>$LOGDEV 2>&1
+	make $JFLAG >>$LOGDEV 2>&1
+
+	if [ $? -ne 0  ]
+	then
+		my_echo rtl-sdr build apparently failed
+		my_echo Exiting rtl-sdr build
+		doexit RTL-BUILD-FAIL1
+	fi
+	sudo make $JFLAG install >>$LOGDEV 2>&1
+	my_echo Done building rtl-sdr
+	
+	cd "$CWD"
+	if [ -d hackrf ]
+	then
+		my_echo -n Building hackrf...
+		cd hackrf/host/
+		rm -rf build
+		mkdir -p build
+		cd build
+		cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 -DINSTALL_UDEV_RULES=ON ../ >>$LOGDEV 2>&1
+		make clean >>$LOGDEV 2>&1
+		make >>$LOGDEV 2>&1
+		if [ $? -ne 0 ]
+		then
+			my_echo hackrf build failed
+			my_echo Exiting hackrf build
+			doexit HACKRF-BUILD-FAIL1
+		else
+			sudo make install >>$LOGDEV 2>&1
+		fi
+		my_echo Done building hackrf
+		cd "$CWD"
+	fi
+
+	cd "$CWD"
+	# if [ -d gr-iqbal ]
+	# then
+	# 	my_echo -n Building gr-iqbal...
+	# 	cd gr-iqbal
+	# 	rm -rf build
+	# 	mkdir -p build
+	# 	cd build
+	# 	cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 ../ >>$LOGDEV 2>&1
+	# 	make clean >>$LOGDEV 2>&1
+	# 	make >>$LOGDEV 2>&1
+	# 	if [ $? -ne 0 ]
+	# 	then
+	# 		my_echo gr-iqbal build apparently failed
+	# 		my_echo Exiting gr-iqbal build
+	# 		doexit IQBAL-BUILD-FAIL1
+	# 	else
+	# 		sudo make install  >>$LOGDEV 2>&1
+	# 		my_echo Done building gr-iqbal
+	# 		cd "$CWD"
+	# 	fi
+	# fi
+
+	if [ -d bladeRF  ]
+	then
+		my_echo -n Building bladeRF...
+		cd bladeRF
+		cd host
+		rm -rf build
+		mkdir -p build
+		cd build
+		cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 ../ >>$LOGDEV 2>&1
+		make clean >>$LOGDEV 2>&1
+		make >>$LOGDEV 2>&1
+		if [ $? -ne 0 ]
+		then
+			my_echo bladeRF build apparently failed
+			my_echo Exiting bladeRF build
+			doexit BLADERF-BUILD-FAIL1
+		else
+			sudo make install >>$LOGDEV 2>&1
+			my_echo Done building bladeRF
+			cd "$CWD"
+		fi
+	fi
+	
+	if [ -d airspyone_host ]
+	then
+		cd airspyone_host
+		rm -rf build
+		mkdir build
+		cd build
+		cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 -DINSTALL_UDEV_RULES=ON ../ >>$LOGDEV 2>&1
+		make clean >>$LOGDEV 2>&1
+		make >>$LOGDEV 2>&1
+		if [ $? -ne 0 ]
+		then
+			my_echo airspyone_host build apparently failed
+			my_echo Exiting airspyone_host build
+			doexit AIRSPYONE-BUILD-FAIL1
+		else
+			sudo make install >>$LOGDEV 2>&1
+			my_echo Done building airspyone_host
+			cd "$CWD"
+		fi
+	fi
+	
+	cd "$CWD"
+	if [ ! -d gr-osmosdr ]
+	then
+		my_echo you do not appear to have the \'gr-osmosdr\' directory
+		my_echo you should probably use $0 gitfetch to fetch the appropriate
+		my_echo files using GIT
+		doexit RTL-BUILD-FAIL2
+	fi
+	cd gr-osmosdr
+	my_echo -n Building gr-osmosdr...
+	rm -rf build
+	mkdir build
+	cd build
+	cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 ../ >>$LOGDEV  2>&1
+	make clean >>$LOGDEV 2>&1
+	make $JFLAG >>$LOGDEV 2>&1
+	
+	if [ $? -ne 0 ]
+	then
+		my_echo gr-osmosdr build apparently failed
+		my_echo Exit rtl-sdr/gr-osmosdr build
+		doexit OSMOSDR-BUILD-FAIL
+	fi
+	sudo make $JFLAG install >>$LOGDEV 2>&1
+	my_echo Done building gr-osmosdr
+	
+	cd "$CWD"
+	sudo ldconfig >>$LOGDEV 2>&1
+	my_echo Done building/installing rtl-sdr, gr-osmosdr, airspyone_host, bladeRF, hackrf, gr-iqbal.
 }
 
-function extras {
+function SoapySDR {
 	sudocheck
-	date=`date +%Y%m%d%H%M%S`
-	if [ ! "@$EXTRAS@" = "@@" ]
-	then
-		for module in $EXTRAS
-		do
-			cd "$CWD"
-		    base=`basename $module .git`
-			case $module in
-			git:*|*.git|*github*)
-				mv $base $base.$date.bgmoved >>$LOGDEV 2>&1 
-				my_echo Doing GIT checkout for extra module $base
-				git clone $module  >>$LOGDEV 2>&1
-				do_an_extra $base
-				;;
-			htt*:*svn*)
-				mv $base $base.$date >>$LOGDEV 2>&1
-				my_echo Doing SVN checkout for extra module $base
-				svn co $module >>$LOGDEV 2>&1
-				if [ -e $base/trunk ]
-				then
-					do_an_extra $base/trunk
-				else
-					do_an_extra $base
-				fi
-				;;
-			*)
-				my_echo Ignoring malformed extra module $module
-				;;
-			esac
-			
-		done
-	fi
+	#
+	# SoapySDR build and install
+	#
 	cd "$CWD"
+	my_echo Building SoapySDR...
+	my_echo "=============> THIS WILL TAKE SOME TIME <============="
+	my_echo
+	cd SoapySDR
+	rm -rf build
+	mkdir build
+	cd build
+	cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 ../ >>$LOGDEV 2>&1
+	make clean >>$LOGDEV 2>&1
+	make $JFLAG >>$LOGDEV 2>&1
+	if [ $? -ne 0  ]
+	then
+		my_echo SoapySDR build apparently failed
+		my_echo Exiting SoapySDR build
+		doexit SoapySDR-BUILD-FAIL1
+	fi
+
+	sudo make $JFLAG install >>$LOGDEV 2>&1
+	sudo ldconfig >>$LOGDEV 2>&1 
+	SoapySDRUtil --info
+	my_echo Done building/installing SoapySDR
+}
+
+function G2RFID {
+	sudocheck
+	#
+	# Gen2 UHF RFID Reader build and install
+	#
+	cd "$CWD"
+	my_echo Building Gen2 UHF RFID Reader...
+	my_echo "=============> THIS WILL TAKE SOME TIME <============="
+	my_echo
+	cd gr-rfid
+	rm -rf build
+	mkdir build
+	cd build
+	cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 ../ >>$LOGDEV 2>&1
+
+	sudo make $JFLAG install >>$LOGDEV 2>&1
+	sudo ldconfig >>$LOGDEV 2>&1 
+	my_echo Done building/installing Gen2 UHF RFID Reader
 }
 
 function mod_groups {
@@ -1143,82 +1125,6 @@ kernel.shmmax = 2147483648
 	fi
 }
 
-function SoapySDR {
-	sudocheck
-	#
-	# SoapySDR build and install
-	#
-	cd "$CWD"
-	my_echo Building SoapySDR...
-	my_echo "=============> THIS WILL TAKE SOME TIME <============="
-	my_echo
-	cd SoapySDR
-	rm -rf build
-	mkdir build
-	cd build
-	cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 ../ >>$LOGDEV 2>&1
-	make clean >>$LOGDEV 2>&1
-	make $JFLAG >>$LOGDEV 2>&1
-	if [ $? -ne 0  ]
-	then
-		my_echo SoapySDR build apparently failed
-		my_echo Exiting SoapySDR build
-		doexit SoapySDR-BUILD-FAIL1
-	fi
-
-	sudo make $JFLAG install >>$LOGDEV 2>&1
-	sudo ldconfig >>$LOGDEV 2>&1 
-	SoapySDRUtil --info
-	my_echo Done building/installing SoapySDR
-}
-
-function G2RFID {
-	sudocheck
-	#
-	# Gen2 UHF RFID Reader build and install
-	#
-	cd "$CWD"
-	my_echo Building Gen2 UHF RFID Reader...
-	my_echo "=============> THIS WILL TAKE SOME TIME <============="
-	my_echo
-	cd gr-rfid
-	rm -rf build
-	mkdir build
-	cd build
-	cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 ../ >>$LOGDEV 2>&1
-
-	sudo make $JFLAG install >>$LOGDEV 2>&1
-	sudo ldconfig >>$LOGDEV 2>&1 
-	my_echo Done building/installing Gen2 UHF RFID Reader
-}
-
-function all {
-	my_echo Starting all functions at: `date`
-	cd "$CWD"
-	prereqs
-	touch -d "15 minutes ago" touch$$
-	if [ -d uhd -a -d gnuradio ]
-	then
-		if [ uhd -ot touch$$ -o gnuradio -ot touch$$ ]
-		then
-			gitfetch
-		else
-			my_echo Skipping git fetch, since \'uhd\' and \'gnuradio\' are new enough
-		fi
-	else
-		gitfetch
-	fi
-	rm -f touch$$
-	for fcn in uhd_build firmware gnuradio_build rtl_build mod_groups mod_udev mod_sysctl pythonpath extras SoapySDR G2RFID
-	do
-		my_echo Starting function $fcn at: `date`
-		cd "$CWD"
-		$fcn
-		my_echo Done function $fcn at: `date`
-	done
-	my_echo Done all functions at: `date`
-}
-
 function pythonpath {
 	for PYVER in 2.6 2.7
 	do
@@ -1248,6 +1154,73 @@ function pythonpath {
 	echo in your .bashrc or equivalent file prior to attempting to run
 	echo any GNU Radio applications or GNU Radio Companion.
 	echo "*************************************************************"
+}
+
+function do_an_extra {
+	if [ -e $1 ]
+	then
+		my_echo Building extra module $1
+		cd $1
+		if [  -f CMakeLists.txt ]
+		then
+			mkdir -p build >>$LOGDEV 2>&1
+			cd build
+			cmake $CMAKE_FLAGS1 $CMAKE_FLAGS2 $CMAKE_FLAG3 ../ >>$LOGDEV 2>&1
+			make >>$LOGDEV 2>&1
+			sudo make install >>$LOGDEV 2>&1
+			sudo ldconfig
+		elif [ - bootstrap ]
+		then
+			chmod 755 bootstrap
+			./bootstrap  >>$LOGDEV 2>&1
+			PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/local/lib64/pkgconfig
+			./configure >>$LOGDEV 2>&1
+			make >>$LOGDEV 2>&1
+			sudo make install >>$LOGDEV 2>&1
+			sudo ldconfig
+		else
+			my_echo Couldnt determine how to make module $1 neither bootstrap nor CmakeLists.txt present
+		fi
+	else
+		my_echo Couldnt build module $1 directory not there
+	fi
+}
+
+function extras {
+	sudocheck
+	date=`date +%Y%m%d%H%M%S`
+	if [ ! "@$EXTRAS@" = "@@" ]
+	then
+		for module in $EXTRAS
+		do
+			cd "$CWD"
+		    base=`basename $module .git`
+			case $module in
+			git:*|*.git|*github*)
+				mv $base $base.$date.bgmoved >>$LOGDEV 2>&1 
+				my_echo Doing GIT checkout for extra module $base
+				git clone $module  >>$LOGDEV 2>&1
+				do_an_extra $base
+				;;
+			htt*:*svn*)
+				mv $base $base.$date >>$LOGDEV 2>&1
+				my_echo Doing SVN checkout for extra module $base
+				svn co $module >>$LOGDEV 2>&1
+				if [ -e $base/trunk ]
+				then
+					do_an_extra $base/trunk
+				else
+					do_an_extra $base
+				fi
+				;;
+			*)
+				my_echo Ignoring malformed extra module $module
+				;;
+			esac
+			
+		done
+	fi
+	cd "$CWD"
 }
 
 function sudocheck {
@@ -1288,6 +1261,33 @@ function sudocheck {
 				;;
 		esac
 	fi
+}
+
+function all {
+	my_echo Starting all functions at: `date`
+	cd "$CWD"
+	prereqs
+	touch -d "15 minutes ago" touch$$
+	if [ -d uhd -a -d gnuradio ]
+	then
+		if [ uhd -ot touch$$ -o gnuradio -ot touch$$ ]
+		then
+			gitfetch
+		else
+			my_echo Skipping git fetch, since \'uhd\' and \'gnuradio\' are new enough
+		fi
+	else
+		gitfetch
+	fi
+	rm -f touch$$
+	for fcn in uhd_build firmware gnuradio_build rtl_build SoapySDR G2RFID mod_groups mod_udev mod_sysctl pythonpath extras
+	do
+		my_echo Starting function $fcn at: `date`
+		cd "$CWD"
+		$fcn
+		my_echo Done function $fcn at: `date`
+	done
+	my_echo Done all functions at: `date`
 }
 
 PATH=$PATH
