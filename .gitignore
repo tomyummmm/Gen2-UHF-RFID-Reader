@@ -1,1 +1,10 @@
 gr-rfid/build/
+uhd/
+gnuradio/
+airspyone_host/
+bladeRF/
+hackrf/
+rtl-sdr/
+gr-iqbal/
+gr-osmosdr
+SoapySDR/
