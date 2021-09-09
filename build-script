@@ -528,13 +528,7 @@ function prereqs {
 	checkcmd git
 	checkcmd cmake
 	
-	if [ $SYSTYPE = Fedora ]
-	then
-		checklib libusb-0 0
-		checklib libusb-1 0
-	else
-		checklib libusb 2
-	fi
+	checklib libusb 2
 	
 	checklib libboost 5
 	checklib libcppunit 0
@@ -580,7 +574,14 @@ function gitfetch {
 	rm -rf gnuradio
 	my_echo -n Fetching GNU Radio maint-3.7 via GIT...
 	git clone -b maint-3.7 --single-branch https://github.com/gnuradio/gnuradio.git
-	git submodule update --init --recursive
+	if [ -d gnuradio ]
+	then
+		cd gnuradio
+		git submodule init  >>$LOGDEV 2>&1
+		git submodule update >>$LOGDEV 2>&1
+		git submodule status >>$LOGDEV 2>&1
+		cd ..
+	fi
 	cd "$CWD"
 	my_echo Done
 
@@ -601,7 +602,7 @@ function gitfetch {
 	rm -rf hackrf
 	rm -rf bladeRF
 	rm -rf airspyone_host
-	my_echo Fetching rtl-sdr "(rtl-sdr, gr-osmosdr, gr-iqbal, hackrf, bladeRF and airspy)" via GIT
+	my_echo Fetching rtl-sdr "(rtl-sdr, gr-osmosdr, gr-iqbal, hackrf, bladeRF and airspyone_host)" via GIT
 	git clone git://git.osmocom.org/rtl-sdr >>$LOGDEV 2>&1
 	git clone -b gr3.7 --single-branch git://git.osmocom.org/gr-osmosdr >>$LOGDEV 2>&1
 	git clone https://github.com/Nuand/bladeRF.git >>$LOGDEV 2>&1
@@ -727,6 +728,7 @@ function rtl_build {
 		then
 			my_echo hackrf build failed
 			my_echo Exiting hackrf build
+			doexit HACKRF-BUILD-FAIL1
 		else
 			sudo make install >>$LOGDEV 2>&1
 		fi
@@ -749,6 +751,7 @@ function rtl_build {
 		then
 			my_echo gr-iqbal build apparently failed
 			my_echo Exiting gr-iqbal build
+			doexit IQBAL-BUILD-FAIL1
 		else
 			sudo make install  >>$LOGDEV 2>&1
 			my_echo Done building gr-iqbal
@@ -771,6 +774,7 @@ function rtl_build {
 		then
 			my_echo bladeRF build apparently failed
 			my_echo Exiting bladeRF build
+			doexit BLADERF-BUILD-FAIL1
 		else
 			sudo make install >>$LOGDEV 2>&1
 			my_echo Done building bladeRF
@@ -789,11 +793,12 @@ function rtl_build {
 		make >>$LOGDEV 2>&1
 		if [ $? -ne 0 ]
 		then
-			my_echo airspy build apparently failed
-			my_echo Exiting airspy build
+			my_echo airspyone_host build apparently failed
+			my_echo Exiting airspyone_host build
+			doexit AIRSPYONE-BUILD-FAIL1
 		else
 			sudo make install >>$LOGDEV 2>&1
-			my_echo Done building airspy
+			my_echo Done building airspyone_host
 			cd "$CWD"
 		fi
 	fi
