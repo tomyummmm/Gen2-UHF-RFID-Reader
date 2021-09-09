@@ -1016,6 +1016,7 @@ function LimeSuite {
 		cd LimeSuite
 		git checkout stable
 		cd ..
+	fi
 
 	cd LimeSuite
 	rm -rf builddir
