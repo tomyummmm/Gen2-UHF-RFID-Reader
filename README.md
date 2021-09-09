@@ -9,9 +9,9 @@ The project is based on the RFID Gen2 Reader available at https://github.com/ran
 - Tag decoder : Responsible for frame synchronization, channel estimation, symbol period estimation and detection.  
 - Reader : Create/send reader commands.
 
-## Installation
+## **This script has been modified and only supports Ubuntu 18.04 LTS. Ubuntu 20.04 is not supported due to deprecation of Python 2.7, qt4 and GNURadio 3.7.x. Ubuntu versions below 18.04 LTS and other linux distros can be supported, but require editing of the build-script to include the pre-requisites, see the original build-gnuradio by Nkargas.**
 
-## **This script has been modified and only supports up to Ubuntu 18.04 LTS due to deprecation of Python 2.7, qt4 and GNURadio 3.7.x on Ubuntu 20.04.**
+## Installation
 
 - Install log4cpp (http://log4cpp.sourceforge.net/)
 - Using build-script will automatically fetch, build and install the following:
@@ -71,6 +71,71 @@ G2RFID          | Build Gen2 UHF RFID Reader
 mod_groups      | Modify the /etc/groups and add user to group 'usrp'
 mod_udev        | Add UDEV rule for USRP1
 mod_sysctl      | Modify SYSCTL for larger net buffers
+
+
+## Checking the installation
+
+1. Check PYTHONPATH
+```sh
+> echo $PYTHONPATH
+/usr/local/lib/python2.7/dist-packages
+```
+
+2. Check SoapySDRUtil
+```sh
+> SoapySDRUtil --info
+######################################################
+##     Soapy SDR -- the SDR abstraction library     ##
+######################################################
+
+Lib Version: v0.8.1-g1cf5a539
+API Version: v0.8.0
+ABI Version: v0.8
+Install root: /usr/local
+Search path:  /usr/local/lib/SoapySDR/modules0.8
+Module found: /usr/local/lib/SoapySDR/modules0.8/libLMS7Support.so (20.10.0-1480bfea)
+Available factories... lime
+Available converters...
+ -  CF32 -> [CF32, CS16, CS8, CU16, CU8]
+ -  CS16 -> [CF32, CS16, CS8, CU16, CU8]
+ -  CS32 -> [CS32]
+ -   CS8 -> [CF32, CS16, CS8, CU16, CU8]
+ -  CU16 -> [CF32, CS16, CS8]
+ -   CU8 -> [CF32, CS16, CS8]
+ -   CU8 -> [CF32, CS16, CS8]
+ -   F32 -> [F32, S16, S8, U16, U8]
+ -   S16 -> [F32, S16, S8, U16, U8]
+ -   S32 -> [S32]
+ -    S8 -> [F32, S16, S8, U16, U8]
+ -   U16 -> [F32, S16, S8]
+ -    U8 -> [F32, S16, S8]
+```
+
+Connect LimeSDR
+```sh
+> SoapySDRUtil --probe
+######################################################
+##     Soapy SDR -- the SDR abstraction library     ##
+######################################################
+
+Probe device
+[INFO] Make connection: 'LimeSDR-USB [USB3.0] 9072C00Dxxxxx'
+[INFO] Reference clock 30.72 MHz
+[INFO] Device name: LimeSDR-USB
+[INFO] Reference: 30.72 MHz
+[INFO] LMS70002M register cache: Disabled
+
+---------------------------------------------------
+-- Device identification
+---------------------------------------------------
+  driver=FX3
+  hardware=LimeSDR-USB
+  boardSerialNumber=0x9072C00Dxxxxx
+  firmwareVersion=4
+  gatewareVersion=2.23
+  hardwareVersion=4
+  protocolVersion=1
+```
 
 ## Configuration
 
@@ -145,9 +210,8 @@ https://github.com/nkargas/Gen2-UHF-RFID-Reader/issues/10
     
 ## Hardware:
 
-  - 1x USRPN200/N210  
-  - 1x RFX900/SBX daughterboard  
-  - 2x circular polarized antennas  
+  - 2x LimeSDR
+  - 2x antennas?
 
 ## Tested on:
   Ubuntu 18.04.5 LTS 64-bit  
