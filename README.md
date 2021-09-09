@@ -15,8 +15,8 @@ The project is based on the RFID Gen2 Reader available at https://github.com/ran
 
 - Install log4cpp (http://log4cpp.sourceforge.net/)
 - Using build-script will automatically fetch, build and install the following:
-> UHD driver + GNU Radio + SoapySDR + Gen2 UHF RFID Reader +
-> rtl-sdr + gr-osmosdr + gr-iqbal + hackrf + bladeRF + airspyone_host
+
+UHD driver + GNU Radio + SoapySDR + LimeSuite + Gen2 UHF RFID Reader + rtl-sdr + gr-osmosdr + gr-iqbal + hackrf + bladeRF + airspyone_host
 
 1. Grant permissions 
 ```sh
@@ -64,8 +64,9 @@ gitfetch        | Use GIT to fetch all packages
 uhd_build       | Build only UHD
 firmware        | Fetch firmware/FPGA
 gnuradio_build  | Build only GNU Radio
-rtl_build       | Build only rtl-sdr + gr-osmosdr + gr-iqbal + hackrf + bladeRF + airspyone_host
-SoapySDR        | Build SoapySDR
+rtl_build       | Build rtl-sdr + gr-osmosdr + gr-iqbal + hackrf + bladeRF + airspyone_host
+SoapySDR        | Build only SoapySDR
+LimeSuite       | Build only LimeSuite
 G2RFID          | Build Gen2 UHF RFID Reader
 mod_groups      | Modify the /etc/groups and add user to group 'usrp'
 mod_udev        | Add UDEV rule for USRP1

@@ -72,6 +72,7 @@ mod_groups      - modify the /etc/groups and add user to group 'usrp'
 mod_udev        - add UDEV rule for USRP1
 mod_sysctl      - modify SYSCTL for larger net buffers
 SoapySDR        - build only SoapySDR
+LimeSuite       - build only LimeSuite
 G2RFID          - build only Gen2 UHF RFID Reader
 !EOF!
 
@@ -441,7 +442,7 @@ function prereqs {
 			python-requests python-sphinx libcomedi-dev python-zmq 
 			libqwt-dev python-six libgps-dev libgps23 gpsd gpsd-clients 
 			python-gps python-setuptools libqt4-opengl-dev pkg-config 
-			python-sip-dev"
+			python-sip-dev libi2c-dev libsqlite3-dev libwxgtk3.0-dev freeglut3-dev"
 
 			CMAKE_FLAG1=-DPYTHON_EXECUTABLE:FILEPATH=/usr/bin/python2.7
 			CMAKE_FLAG2=-DPYTHON_INCLUDE_DIR:PATH=/usr/include/python2.7
@@ -623,8 +624,17 @@ function gitfetch {
 	#
 	rm -rf SoapySDR
 	my_echo -n Fetching SoapySDR via GIT...
-	git clone https://github.com/pothosware/SoapySDR.git
+	git clone https://github.com/pothosware/SoapySDR.git >>$LOGDEV 2>&1
 
+	#
+	# GIT the LimeSuite source tree
+	#
+	rm -rf LimeSuite
+	my_echo -n Fetching LimeSuite via GIT...
+	git clone https://github.com/myriadrf/LimeSuite.git >>$LOGDEV 2>&1
+	cd LimeSuite
+	git checkout stable >>$LOGDEV 2>&1
+	cd ..
 
 	my_echo Done
 }
@@ -978,6 +988,58 @@ function SoapySDR {
 	my_echo Done building/installing SoapySDR
 }
 
+function LimeSuite {
+	sudocheck
+	#
+	# LimeSuite build and install
+	#
+	cd "$CWD"
+
+	#Install dependencies
+	my_echo Installing LimeSuite dependencies...
+	PKGLIST="libi2c-dev libsqlite3-dev libwxgtk3.0-dev freeglut3-dev"
+
+	for pkg in $PKGLIST; do checkpkg $pkg; done
+	my_echo Done checking packages
+	for pkg in $PKGLIST
+	do
+		my_echo Installing $pkg
+		sudo apt-get -y --ignore-missing install $pkg >>$LOGDEV 2>&1
+	done
+
+	my_echo Building LimeSuite...
+	my_echo "=============> THIS WILL TAKE SOME TIME <============="
+	my_echo
+	if [ ! -d LimeSuite ]
+	then
+		git clone https://github.com/myriadrf/LimeSuite.git
+		cd LimeSuite
+		git checkout stable
+		cd ..
+
+	cd LimeSuite
+	rm -rf builddir
+	mkdir builddir
+	cd builddir
+	cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 ../ >>$LOGDEV 2>&1
+	make clean >>$LOGDEV 2>&1
+	make $JFLAG >>$LOGDEV 2>&1
+	if [ $? -ne 0  ]
+	then
+		my_echo LimeSuite build apparently failed
+		my_echo Exiting LimeSuite build
+		doexit LimeSuite-BUILD-FAIL1
+	fi
+
+	sudo make $JFLAG install >>$LOGDEV 2>&1
+	sudo ldconfig >>$LOGDEV 2>&1 
+	cd ../udev-rules
+	sudo bash install.sh >>$LOGDEV 2>&1
+	SoapySDRUtil --info
+	SoapySDRUtil --probe
+	my_echo Done building/installing LimeSuite
+}
+
 function G2RFID {
 	sudocheck
 	#
@@ -1280,7 +1342,7 @@ function all {
 		gitfetch
 	fi
 	rm -f touch$$
-	for fcn in uhd_build firmware gnuradio_build rtl_build SoapySDR G2RFID mod_groups mod_udev mod_sysctl pythonpath extras
+	for fcn in uhd_build firmware gnuradio_build rtl_build SoapySDR LimeSuite G2RFID mod_groups mod_udev mod_sysctl pythonpath extras
 	do
 		my_echo Starting function $fcn at: `date`
 		cd "$CWD"
