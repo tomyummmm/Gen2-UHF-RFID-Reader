@@ -11,58 +11,65 @@ The project is based on the RFID Gen2 Reader available at https://github.com/ran
 
 ## Installation
 
-## **This script has been modified and only supports up to Ubuntu 18.X due to python 2.7, qt4 and deprecation of GNURadio 3.7.X on Ubuntu 20.04.**
+## **This script has been modified and only supports up to Ubuntu 18.04 LTS due to deprecation of Python 2.7, qt4 and GNURadio 3.7.x on Ubuntu 20.04.**
 
 - Install log4cpp (http://log4cpp.sourceforge.net/)
 - Using build-script will automatically fetch, build and install the following:
 > UHD driver + GNU Radio + SoapySDR + Gen2 UHF RFID Reader +
 > rtl-sdr + gr-osmosdr + gr-iqbal + hackrf + bladeRF + airspyone_host
 
-- Grant permissions 
+1. Grant permissions 
 ```sh
 chmod a+x ./build-script
 ```
-- Execute with the following flags 
+
+2. Execute with the following flags 
 ```sh
 ./build-script -ja -v
 ```
 
+3. Add PYTHONPATH to ~/.bashrc
+```sh
+echo 'export PYTHONPATH=/usr/local/lib/python2.7/dist-packages' >> ~./bashrc
+```
+
+4. Source ~/.bashrc
+```sh
+source ~/.bashrc
+```
+
+5. Restart PC for mod_groups to take effect
+
 Usage: build-script [--help|-h] [-v|--verbose] [-jN] [-ja] 
-                      [-l|--logfile logfile ] [-u|--users ulist] [-m] funcs
+                      [-l|--logfile logfile ] [-u|--users ulist] funcs
 
--m             - Use HEAD of *master* branch, rather than *maint*.
+ Flags        |  Description                                             
+--------------|----------------------------------------------------------
+-v/--verbose  | Turn on verbose logging to stdout
+-jN           | Have make use N concurrent jobs
+-ja           | Have make use N concurrent jobs with auto setting of N (based on number of cpu cores on build system)
+-u/--users ul | Add comma-separated users to 'usrp' group in addition to calling user ( $USER )
+-l/--logfile lf | Log messages to 'lf'
+-ut <tag>      | Set tag for UHD checkout to <tag>
+-ucf <ucflags> | Set UHD CMake flags to <ucflags>
+-gt <tag>      | Set tag for Gnu Radio checkout to <tag>
+-gcf <gcflags> | Set Gnu Radio CMake flags to <gcflags>
+-e/--extras    | Add an item to "extras" to be built after Gnu Radio/UHD/gs-osmosdr
 
--v|--verbose   - turn on verbose logging to stdout
-
--jN            - have make use N concurrent jobs
-
--ja            - have make use N concurrent jobs with auto setting of N
-                 (based on number of cpu cores on build system)
-                 
-
--u|--users ul  - add comma-separated users to 'usrp' group in addition
-                 to calling user ( $USER )
-
--l|--logfile lf - log messages to 'lf'
--ut <tag>       - set tag for UHD checkout to <tag>
--ucf <ucflags>  - set UHD CMake flags to <ucflags>
--gt <tag>       - set tag for Gnu Radio checkout to <tag>
--gcf <gcflags>  - set Gnu Radio CMake flags to <gcflags>
--e|--extras     - add an item to "extras" to be built after Gnu Radio/UHD/gs-osmosdr
-
-Available funcs:
-
-all             - do all functions
-prereqs         - install prerequisites
-gitfetch        - use GIT to fetch Gnu Radio and UHD
-uhd_build       - build only UHD
-firmware        - fetch firmware/FPGA
-gnuradio_build  - build only Gnu Radio
-mod_groups      - modify the /etc/groups and add user to group 'usrp'
-mod_udev        - add UDEV rule for USRP1
-mod_sysctl      - modify SYSCTL for larger net buffers
-SoapySDR        - fetch and build SoapySDR
-G2RFID          - build Gen2 UHF RFID Reader
+Available funcs | Description
+----------------|--------------------------------------------
+all             | Do all functions (default)
+prereqs         | Install prerequisites
+gitfetch        | Use GIT to fetch all packages
+uhd_build       | Build only UHD
+firmware        | Fetch firmware/FPGA
+gnuradio_build  | Build only GNU Radio
+rtl_build       | Build only rtl-sdr + gr-osmosdr + gr-iqbal + hackrf + bladeRF + airspyone_host
+SoapySDR        | Build SoapySDR
+G2RFID          | Build Gen2 UHF RFID Reader
+mod_groups      | Modify the /etc/groups and add user to group 'usrp'
+mod_udev        | Add UDEV rule for USRP1
+mod_sysctl      | Modify SYSCTL for larger net buffers
 
 ## Configuration
 
