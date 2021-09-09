@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Build script for UHD+GnuRadio on Ubuntu
+# Build script for UHD + GNU Radio + SoapySDR + rtl-sdr on Ubuntu
 #
 #
 #
@@ -37,15 +37,12 @@ A simple paypal transfer to mleech@ripnet.com is all you need to do.
 function help {
 	cat <<!EOF!
 	
-Usage: build-gnuradio [--help|-h] [-v|--verbose] [-jN] [-ja] 
-                      [-l|--logfile logfile ] [-u|--users ulist] [-m] funcs
-
--m             - Use HEAD of *master* branch, rather than *maint*.
--o             - Use v3.6.5.1
+Usage: build-script [--help|-h] [-v|--verbose] [-jN] [-ja] 
+                      [-l|--logfile logfile ] [-u|--users ulist] funcs
 
 -v|--verbose   - turn on verbose logging to stdout
 
--jN            - have make use N concurrent jobs
+-jN            - have make use N concurrent jobs (2-9)
 
 -ja            - have make use N concurrent jobs with auto setting of N
                  (based on number of cpu cores on build system)
@@ -58,22 +55,24 @@ Usage: build-gnuradio [--help|-h] [-v|--verbose] [-jN] [-ja]
 -l|--logfile lf - log messages to 'lf'
 -ut <tag>       - set tag for UHD checkout to <tag>
 -ucf <ucflags>  - set UHD CMake flags to <ucflags>
--gt <tag>       - set tag for Gnu Radio checkout to <tag>
--gcf <gcflags>  - set Gnu Radio CMake flags to <gcflags>
--e|--extras     - add an item to "extras" to be built after Gnu Radio/UHD/gs-osmosdr
-available funcs are:
+-gt <tag>       - set tag for GNU Radio checkout to <tag>
+-gcf <gcflags>  - set GNU Radio CMake flags to <gcflags>
+-e|--extras     - add an item to "extras" to be built after GNU Radio/UHD/gs-osmosdr
 
-all             - do all functions
+Available funcs:
+
+all             - do all functions (default)
 prereqs         - install prerequisites
-gitfetch        - use GIT to fetch Gnu Radio and UHD
+gitfetch        - use GIT to fetch GNU Radio, UHD, SoapySDR and others
 uhd_build       - build only UHD
 firmware        - fetch firmware/FPGA
-gnuradio_build  - build only Gnu Radio
+gnuradio_build  - build only GNU Radio
+rtl_build       - build only rtl-sdr and others
 mod_groups      - modify the /etc/groups and add user to group 'usrp'
 mod_udev        - add UDEV rule for USRP1
 mod_sysctl      - modify SYSCTL for larger net buffers
-SoapySDR        - fetch and build SoapySDR
-G2RFID          - build Gen2 UHF RFID Reader
+SoapySDR        - build only SoapySDR
+G2RFID          - build only Gen2 UHF RFID Reader
 !EOF!
 
 }
@@ -93,28 +92,22 @@ UTAG=None
 GTAG=None
 export LC_LANG=C
 EXTRAS=""
-MASTER_MODE=0
-OLD_MODE=0
-PULLED_LIST="gnuradio uhd rtl-sdr gr-osmosdr gr-iqbal hackrf gr-baz bladeRF airspyone_host" 
+PULLED_LIST="gnuradio uhd rtl-sdr gr-osmosdr gr-iqbal hackrf bladeRF airspyone_host SoapySDR" # gr-baz not installed?
 which python3 >/dev/null 2>&1
 if [ $? -eq 0 ]
 then
 	CMAKE_FLAG1=-DPYTHON_EXECUTABLE:FILEPATH=/usr/bin/python2.7
 	CMAKE_FLAG2=-DPYTHON_INCLUDE_DIR:PATH=/usr/include/python2.7
 	CMAKE_FLAG3=-DPYTHON_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libpython2.7.so
-# //Path to a program.
-# PYTHON_EXECUTABLE:FILEPATH=/usr/bin/python3
+	# //Path to a program.
+	# PYTHON_EXECUTABLE:FILEPATH=/usr/bin/python3
 
-# //Path to a file.
-# PYTHON_INCLUDE_DIR:PATH=/usr/include/python3.6m
+	# //Path to a file.
+	# PYTHON_INCLUDE_DIR:PATH=/usr/include/python3.6m
 
-# //Path to a library.
-# PYTHON_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libpython2.7.so
-# PYTHON_LIBRARY:FILEPATH=/usr/lib/python2.7/
-# /usr/lib/python2.7/dist-packages
-# /usr/local/lib/python2.7/dist-packages
-# //python runtime interpreter
-# RUNTIME_PYTHON_EXECUTABLE:FILEPATH=/usr/bin/python3
+	# //Path to a library.
+	# PYTHON_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libpython3.6m.so
+
 fi
 while : 
 do
@@ -161,16 +154,6 @@ do
 			shift
 			shift
 			;;
-		
-		-m|--master)
-			MASTER_MODE=1
-			shift
-			;;
-
-        -o|--old)
-            OLD_MODE=1
-            shift
-            ;;
             
 		-h|--help)
 			help
@@ -237,15 +220,15 @@ then
 	exit
 fi
 
-echo This script will install Gnu Radio from current GIT sources
+echo This script will install GNU Radio from current GIT sources
 echo You will require Internet access from the computer on which this
 echo script runs.  You will also require SUDO access.  You will require
 echo approximately 500MB of free disk space to perform the build.
 echo " "
-echo This script will, as a side-effect, remove any existing Gnu Radio
+echo This script will, as a side-effect, remove any existing GNU Radio
 echo installation that was installed from your Linux distribution packages.
 echo It must do this to prevent problems due to interference between
-echo a linux-distribution-installed Gnu Radio/UHD and one installed from GIT source.
+echo a linux-distribution-installed GNU Radio/UHD and one installed from GIT source.
 echo " "
 echo The whole process may take up to two hours to complete, depending on the
 echo capabilities of your system.
@@ -380,7 +363,7 @@ function checkcmd {
 	then
 		my_echo Failed to find just-installed command \'$1\' after pre-requisite installation.
 		my_echo This very likely indicates that the pre-requisite installation failed
-		my_echo to install one or more critical pre-requisites for Gnu Radio/UHD
+		my_echo to install one or more critical pre-requisites for GNU Radio/UHD
 		doexit PREREQFAIL-CMD-$1
 	fi
 }
@@ -403,7 +386,7 @@ function checklib {
 	then
 		my_echo Failed to find libraries with prefix \'$1\' after pre-requisite installation.
 		my_echo This very likely indicates that the pre-requisite installation failed
-		my_echo to install one or more critical pre-requisites for Gnu Radio/UHD
+		my_echo to install one or more critical pre-requisites for GNU Radio/UHD
 		my_echo exiting build
 		doexit PREREQFAIL-LIB-$1
 	else
@@ -564,7 +547,7 @@ function prereqs {
 
 function gitfetch {
 	date=`date +%Y%m%d%H%M%S`
-	echo This script will fetch Gnu Radio branch maint-3.7 from the repositories, along with compatible
+	echo This script will fetch GNU Radio branch maint-3.7 from the repositories, along with compatible
 	echo  extras.
 	echo -n "Is this OK? (y / n) "
 	read ans
@@ -578,7 +561,7 @@ function gitfetch {
 	esac
 		
 
-	my_echo "Fetching various packages (Gnu Radio, UHD, gr-osmosdr, gr-iqbal, etc)"
+	my_echo "Fetching various packages (GNU Radio, UHD, gr-osmosdr, gr-iqbal, etc)"
 	my_echo "  via the Internet"
 	my_echo "=======> THIS MAY TAKE QUITE SOME TIME <========="
 
@@ -592,10 +575,10 @@ function gitfetch {
 	done
 	
 	#
-	# GIT the gnu radio source tree
+	# GIT the GNU Radio source tree
 	#
 	rm -rf gnuradio
-	my_echo -n Fetching Gnu Radio maint-3.7 via GIT...
+	my_echo -n Fetching GNU Radio maint-3.7 via GIT...
 	git clone -b maint-3.7 --single-branch https://github.com/gnuradio/gnuradio.git
 	git submodule update --init --recursive
 	cd "$CWD"
@@ -633,6 +616,15 @@ function gitfetch {
 		git submodule update >>$LOGDEV 2>&1
 		cd ..
 	fi
+
+	#
+	# GIT the SoapySDR source tree
+	#
+	rm -rf SoapySDR
+	my_echo -n Fetching SoapySDR via GIT...
+	git clone https://github.com/pothosware/SoapySDR.git
+
+
 	my_echo Done
 }
 
@@ -664,7 +656,6 @@ function uhd_build {
 		mkdir build
 	fi
 	cd build
-	make clean >/dev/null 2>&1
 	cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 $UCFLAGS ../ >>$LOGDEV 2>&1
 	make clean >>$LOGDEV 2>&1
 	make $JFLAG >>$LOGDEV 2>&1
@@ -705,6 +696,7 @@ function rtl_build {
 	
 	my_echo -n Building rtl-sdr...
 	cd rtl-sdr
+	rm -rf build
 	mkdir -p build
 	cd build
 	cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 -DINSTALL_UDEV_RULES=ON ../ >>$LOGDEV 2>&1
@@ -719,13 +711,13 @@ function rtl_build {
 	fi
 	sudo make $JFLAG install >>$LOGDEV 2>&1
 	my_echo Done building rtl-sdr
-	rm -rf *
 	
 	cd "$CWD"
 	if [ -d hackrf ]
 	then
 		my_echo -n Building hackrf...
 		cd hackrf/host/
+		rm -rf build
 		mkdir -p build
 		cd build
 		cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 -DINSTALL_UDEV_RULES=ON ../ >>$LOGDEV 2>&1
@@ -739,7 +731,6 @@ function rtl_build {
 			sudo make install >>$LOGDEV 2>&1
 		fi
 		my_echo Done building hackrf
-		rm -rf *
 		cd "$CWD"
 	fi
 
@@ -748,6 +739,7 @@ function rtl_build {
 	then
 		my_echo -n Building gr-iqbal...
 		cd gr-iqbal
+		rm -rf build
 		mkdir -p build
 		cd build
 		cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 ../ >>$LOGDEV 2>&1
@@ -760,7 +752,6 @@ function rtl_build {
 		else
 			sudo make install  >>$LOGDEV 2>&1
 			my_echo Done building gr-iqbal
-			rm -rf *
 			cd "$CWD"
 		fi
 	fi
@@ -770,6 +761,7 @@ function rtl_build {
 		my_echo -n Building bladeRF...
 		cd bladeRF
 		cd host
+		rm -rf build
 		mkdir -p build
 		cd build
 		cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 ../ >>$LOGDEV 2>&1
@@ -782,7 +774,6 @@ function rtl_build {
 		else
 			sudo make install >>$LOGDEV 2>&1
 			my_echo Done building bladeRF
-			rm -rf *
 			cd "$CWD"
 		fi
 	fi
@@ -790,6 +781,7 @@ function rtl_build {
 	if [ -d airspyone_host ]
 	then
 		cd airspyone_host
+		rm -rf build
 		mkdir build
 		cd build
 		cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 -DINSTALL_UDEV_RULES=ON ../ >>$LOGDEV 2>&1
@@ -802,7 +794,6 @@ function rtl_build {
 		else
 			sudo make install >>$LOGDEV 2>&1
 			my_echo Done building airspy
-			rm -rf *
 			cd "$CWD"
 		fi
 	fi
@@ -816,11 +807,8 @@ function rtl_build {
 		doexit RTL-BUILD-FAIL2
 	fi
 	cd gr-osmosdr
-	if [ $OLD_MODE -eq 1 ]
-	then
-		git checkout gr3.6 >/dev/null 2>&1
-	fi
 	my_echo -n Building gr-osmosdr...
+	rm -rf build
 	mkdir build
 	cd build
 	cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 ../ >>$LOGDEV  2>&1
@@ -835,7 +823,6 @@ function rtl_build {
 	fi
 	sudo make $JFLAG install >>$LOGDEV 2>&1
 	my_echo Done building gr-osmosdr
-	rm -rf *
 	
 	cd "$CWD"
 	sudo ldconfig >>$LOGDEV 2>&1
@@ -919,23 +906,18 @@ function gnuradio_build {
 	export PKG_CONFIG_PATH
 	
 	#
-	# Build Gnuradio
+	# Build GNUradio
 	#
 	cd "$CWD"
 	cd gnuradio
 
-	my_echo Building Gnu Radio...
+	my_echo Building GNU Radio...
 	my_echo "=========> THIS WILL TAKE QUITE A WHILE <============="
 	my_echo " "
 	my_echo ...Doing cmake
-	if [ -d build ]
-	then
-		my_echo ...build directory already here
-	else
-		mkdir build
-	fi
+	rm -rf build
+	mkdir build
 	cd build
-	make clean >/dev/null 2>&1
 	my_echo ...Cmaking
 	cmake -DENABLE_BAD_BOOST=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 $GCFLAGS ../ >>$LOGDEV 2>&1
 	my_echo ...Building
@@ -944,7 +926,7 @@ function gnuradio_build {
 	if [ $? -ne 0 ]
 	then
 		my_echo make failed
-		my_echo Exiting Gnu Radio build/install
+		my_echo Exiting GNU Radio build/install
 		doexit GNURADIO-BUILD-FAIL
 	fi
 	my_echo ...Installing
@@ -952,7 +934,7 @@ function gnuradio_build {
 	sudo rm -f /usr/local/lib*/libgnuradio*
 	sudo make $JFLAG install >>$LOGDEV 2>&1
 	sudo ldconfig >>$LOGDEV 2>&1
-	my_echo Done building and installing Gnu Radio
+	my_echo Done building and installing GNU Radio
 	my_echo -n GRC freedesktop icons install ...
 	if [ -f /usr/local/libexec/gnuradio/grc_setup_freedesktop ]
 	then
@@ -1115,14 +1097,14 @@ function mod_sysctl {
 	# Modify sysctl.conf as necessary
 	#
 	cat >tmp$$ <<!EOF!
-# Updates for Gnu Radio
+# Updates for GNU Radio
 net.core.rmem_max = 1000000
 net.core.wmem_max = 1000000
 kernel.shmmax = 2147483648
 !EOF!
 
 
-	if grep -q 'Updates for Gnu Radio' /etc/sysctl.conf
+	if grep -q 'Updates for GNU Radio' /etc/sysctl.conf
 	then
 		my_echo Required updates to /etc/sysctl.conf already in place
 	else
@@ -1159,17 +1141,14 @@ kernel.shmmax = 2147483648
 function SoapySDR {
 	sudocheck
 	#
-	# soapysdr git fetch, build and install
+	# SoapySDR build and install
 	#
 	cd "$CWD"
-	rm -rf SoapySDR
-	my_echo -n Fetching SoapySDR via GIT...
-	git clone https://github.com/pothosware/SoapySDR.git
-
 	my_echo Building SoapySDR...
 	my_echo "=============> THIS WILL TAKE SOME TIME <============="
 	my_echo
 	cd SoapySDR
+	rm -rf build
 	mkdir build
 	cd build
 	cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 ../ >>$LOGDEV 2>&1
@@ -1262,7 +1241,7 @@ function pythonpath {
 	echo export PYTHONPATH=$PYTHONPATH
 	echo " "
 	echo in your .bashrc or equivalent file prior to attempting to run
-	echo any Gnu Radio applications or Gnu Radio Companion.
+	echo any GNU Radio applications or GNU Radio Companion.
 	echo "*************************************************************"
 }
 
