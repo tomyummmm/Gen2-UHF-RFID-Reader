@@ -55,13 +55,13 @@ namespace gr {
       win_samples.resize(win_length);
       dc_samples.resize(dc_length);
 
-      GR_LOG_INFO(d_logger, "T1 samples : " << n_samples_T1);
-      GR_LOG_INFO(d_logger, "PW samples : " << n_samples_PW);
+      GR_LOG_INFO(d_logger, "T1 samples : " + std::to_string(n_samples_T1));
+      GR_LOG_INFO(d_logger, "PW samples : " + std::to_string(n_samples_PW));
 
-      GR_LOG_INFO(d_logger, "Samples of Tag bit : "<< n_samples_TAG_BIT);
-      GR_LOG_INFO(d_logger, "Size of window : " << win_length);
-      GR_LOG_INFO(d_logger, "Size of window for dc offset estimation : " << dc_length);
-      GR_LOG_INFO(d_logger, "Duration of window for dc offset estimation : " << DC_SIZE_D << " us");
+      GR_LOG_INFO(d_logger, "Samples of Tag bit : " + std::to_string(n_samples_TAG_BIT));
+      GR_LOG_INFO(d_logger, "Size of window : " + std::to_string(win_length));
+      GR_LOG_INFO(d_logger, "Size of window for dc offset estimation : " + std::to_string(dc_length));
+      GR_LOG_INFO(d_logger, "Duration of window for dc offset estimation : " + std::to_string(DC_SIZE_D) + " us");
 
       
       // First block to be scheduled

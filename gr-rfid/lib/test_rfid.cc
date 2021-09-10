@@ -31,8 +31,7 @@
 #include "qa_rfid.h"
 #include <iostream>
 
-int
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   CppUnit::TextTestRunner runner;
   std::ofstream xmlfile(get_unittest_path("rfid.xml").c_str());

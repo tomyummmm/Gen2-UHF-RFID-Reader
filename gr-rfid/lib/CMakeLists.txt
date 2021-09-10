@@ -75,11 +75,11 @@ include(GrTest)
 include_directories(${CPPUNIT_INCLUDE_DIRS})
 # List all files that contain Boost.UTF unit tests here
 list(APPEND test_rfid_sources
-    ${CMAKE_CURRENT_SOURCE_DIR}/test_rfid.cc
-    ${CMAKE_CURRENT_SOURCE_DIR}/qa_rfid.cc
+  #  test_rfid.cc
+  #  qa_rfid.cc
 )
 # Anything we need to link to for the unit tests go here
-list(APPEND GR_TEST_TARGET_DEPS gnuradio-rfid)
+list(APPEND GR_TEST_TARGET_DEPS gnuradio-rfid cppunit)
 
 if(NOT test_rfid_sources)
     MESSAGE(STATUS "No C++ unit tests... skipping")

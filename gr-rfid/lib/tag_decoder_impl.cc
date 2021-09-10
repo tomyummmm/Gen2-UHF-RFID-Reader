@@ -58,8 +58,8 @@ namespace gr {
       char_bits = (char *) malloc( sizeof(char) * 128);
 
       n_samples_TAG_BIT = TAG_BIT_D * s_rate / pow(10,6);      
-      GR_LOG_INFO(d_logger, "Number of samples of Tag bit : "<< n_samples_TAG_BIT);
-    }
+      GR_LOG_INFO(d_logger, "Number of samples of Tag bit : " + std::to_string(n_samples_TAG_BIT));
+	}
 
     /*
      * Our virtual destructor.
@@ -350,7 +350,7 @@ namespace gr {
             {
               result += std::pow(2,7-i) * EPC_bits[104+i] ;
             }
-            GR_LOG_INFO(d_debug_logger, "EPC CORRECTLY DECODED, TAG ID : " << result);
+            GR_LOG_INFO(d_debug_logger, "EPC CORRECTLY DECODED, TAG ID : " + std::to_string(result));
 
             // Save part of Tag's EPC message (EPC[104:111] in decimal) + number of reads
             std::map<int,int>::iterator it = reader_state->reader_stats.tag_reads.find(result);
@@ -362,7 +362,7 @@ namespace gr {
             {
               reader_state->reader_stats.tag_reads[result]=1;
             }
-          }
+		  }
           else
           {     
 
