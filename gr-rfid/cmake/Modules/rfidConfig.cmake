@@ -22,9 +22,10 @@ FIND_LIBRARY(
           /usr/local/lib64
           /usr/lib
           /usr/lib64
-)
+          )
+
+include("${CMAKE_CURRENT_LIST_DIR}/rfidTarget.cmake")
 
 INCLUDE(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(RFID DEFAULT_MSG RFID_LIBRARIES RFID_INCLUDE_DIRS)
 MARK_AS_ADVANCED(RFID_LIBRARIES RFID_INCLUDE_DIRS)
-
