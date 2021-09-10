@@ -9,12 +9,12 @@ The project is based on the RFID Gen2 Reader available at https://github.com/ran
 - Tag decoder : Responsible for frame synchronization, channel estimation, symbol period estimation and detection.  
 - Reader : Create/send reader commands.
 
-## **This script has been modified and only supports Ubuntu 18.04 LTS. Ubuntu 20.04 is not supported due to deprecation of Python 2.7, qt4 and GNURadio 3.7.x. Ubuntu versions below 18.04 LTS and other linux distros can be supported, but require editing of the build-script to include the pre-requisites, see the original build-gnuradio by Nkargas.**
+## **This script has been modified and only supports Ubuntu 20.04 LTS. Ubuntu versions below 18.04 LTS and other linux distros are not supported due to deprecation of Python 2.7, qt4 when upgrading to GNU Radio 3.8.x.**
 
 ## Installation
 The whole process may take up to two hours to complete, depending on the capabilities of your system. A faster CPU with more cores and threads will be quicker to compile. AMD Ryzen 5 1600 -j11 took \~45 minutes to complete, Intel i5-8250U -j7 took \~1 hour 6 minutes to complete, Intel i5-3230m -j3 took \~1 hour 30 minutes to complete.
 
-- Install log4cpp (http://log4cpp.sourceforge.net/)
+- Log4cpp is installed on Ubuntu 20.04 LTS
 - Using build-script will automatically fetch, build and install the following:
 
 UHD driver + GNU Radio + SoapySDR + LimeSuite + Gen2 UHF RFID Reader + rtl-sdr + gr-osmosdr + gr-iqbal + hackrf + bladeRF + airspyone_host
@@ -29,9 +29,12 @@ chmod a+x ./build-script
 ./build-script -ja -v
 ```
 
-3. Add PYTHONPATH to ~/.bashrc
+3. Add PYTHONPATH and LD Library to ~/.bashrc
 ```sh
-echo 'export PYTHONPATH=/usr/local/lib/python2.7/dist-packages' >> ~/.bashrc
+echo 'export PYTHONPATH=/usr/local/lib/python3/dist-packages:/usr/local/lib/python3/site-packages:$PYTHONPATH' >> ~/.bashrc
+```
+```sh
+echo 'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH' >> ~/.bashrc
 ```
 
 4. Source ~/.bashrc
@@ -79,7 +82,7 @@ mod_sysctl      | Modify SYSCTL for larger net buffers
 1. Check PYTHONPATH
 ```sh
 > echo $PYTHONPATH
-/usr/local/lib/python2.7/dist-packages
+/usr/local/lib/python3/dist-packages:/usr/local/lib/python3/site-packages:
 ```
 
 2. Check SoapySDRUtil
@@ -215,8 +218,8 @@ https://github.com/nkargas/Gen2-UHF-RFID-Reader/issues/10
   - 2x antennas?
 
 ## Tested on:
-  Ubuntu 18.04.5 LTS 64-bit  
-  GNU Radio 3.7.14
+  Ubuntu 20.04 LTS 64-bit  
+  GNU Radio 3.8.3.1
   
 ## If you use this software please cite:
 N. Kargas, F. Mavromatis and A. Bletsas, "Fully-Coherent Reader with Commodity SDR for Gen2 FM0 and Computational RFID", IEEE Wireless Communications Letters (WCL), Vol. 4, No. 6, pp. 617-620, Dec. 2015. 
