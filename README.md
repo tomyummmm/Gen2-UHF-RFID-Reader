@@ -9,12 +9,12 @@ The project is based on the RFID Gen2 Reader available at https://github.com/ran
 - Tag decoder : Responsible for frame synchronization, channel estimation, symbol period estimation and detection.  
 - Reader : Create/send reader commands.
 
-## **This script has been modified and only supports Ubuntu 20.04 LTS. Ubuntu versions below 18.04 LTS and other linux distros are not supported due to deprecation of Python 2.7, qt4 when upgrading to GNU Radio 3.8.x.**
+## **This script has been modified and only supports Ubuntu 18.04 / 20.04 LTS. Ubuntu versions below 18.04 LTS and other linux distros are not supported due to deprecation of Python 2.7, qt4 when upgrading to GNU Radio 3.8.x.**
 
 ## Installation
 The whole process may take up to two hours to complete, depending on the capabilities of your system. A faster CPU with more cores and threads will be quicker to compile. AMD Ryzen 5 1600 -j11 took \~45 minutes to complete, Intel i5-8250U -j7 took \~1 hour 6 minutes to complete, Intel i5-3230m -j3 took \~1 hour 30 minutes to complete.
 
-- Log4cpp is installed on Ubuntu 20.04 LTS
+- Log4cpp is installed on Ubuntu 20.04 LTS, Ubuntu 18.04 requires manaual installation here (http://log4cpp.sourceforge.net/)
 - Using build-script will automatically fetch, build and install the following:
 
 UHD driver + GNU Radio + SoapySDR + LimeSuite + Gen2 UHF RFID Reader + rtl-sdr + gr-osmosdr + gr-iqbal + hackrf + bladeRF + airspyone_host
@@ -30,9 +30,16 @@ chmod a+x ./build-script
 ```
 
 3. Add PYTHONPATH and LD Library to ~/.bashrc
+
+Ubuntu 20.04
 ```sh
 echo 'export PYTHONPATH=/usr/local/lib/python3/dist-packages:/usr/local/lib/python3/site-packages:$PYTHONPATH' >> ~/.bashrc
 ```
+Ubuntu 18.04
+```sh
+echo 'export PYTHONPATH=/usr/local/lib/python3.6/dist-packages:/usr/local/lib/python3.6/site-packages:$PYTHONPATH' >> ~/.bashrc
+```
+Both
 ```sh
 echo 'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH' >> ~/.bashrc
 ```

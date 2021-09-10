@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Build script for UHD + GNU Radio + SoapySDR + rtl-sdr on Ubuntu 20.04 LTS
+# Build script for UHD + GNU Radio + SoapySDR + rtl-sdr on Ubuntu 18.04 / 20.04 LTS
 #
 #
 #
@@ -216,13 +216,13 @@ do
 done
 if [ $good_to_go = no ]
 then
-	echo Supported systems: Ubuntu 20.04 LTS
+	echo Supported systems: Ubuntu 18.04 / 20.04 LTS
 	echo You appear to be running none of the above, exiting
 	exit
 fi
 
 echo ==============================================================================
-echo This script has been modified and only supports Ubuntu 20.04 LTS. 
+echo This script has been modified and only supports Ubuntu 18.04 / 20.04 LTS. 
 echo ==============================================================================
 echo
 echo This script will install UHD driver, GNU Radio, SoapySDR, LimeSuite, 
@@ -452,6 +452,30 @@ function prereqs {
 			CMAKE_FLAG3=""
 			;;
 
+		*18.*)
+			PKGLIST="git swig cmake doxygen build-essential libboost-all-dev libtool libusb-1.0-0 
+			libusb-1.0-0-dev libudev-dev libncurses5-dev libfftw3-bin libfftw3-dev 
+			libfftw3-doc libcppunit-1.14-0 libcppunit-dev libcppunit-doc ncurses-bin 
+			cpufrequtils python-numpy python-numpy-doc python-numpy-dbg python-scipy 
+			python-docutils qt4-bin-dbg qt4-default qt4-doc libqt4-dev libqt4-dev-bin 
+			python-qt4 python-qt4-dbg python-qt4-dev python-qt4-doc libqwt6abi1 libncurses5 
+			libncurses5-dbg libfontconfig1-dev libxrender-dev libpulse-dev g++ automake 
+			autoconf python-dev libusb-dev fort77 libsdl1.2-dev python-wxgtk3.0 ccache 
+			python-opengl libgsl-dev python-cheetah python-mako python-lxml qt4-dev-tools 
+			libqwtplot3d-qt5-dev pyqt4-dev-tools python-qwt5-qt4 wget libxi-dev 
+			gtk2-engines-pixbuf r-base-dev python-tk liborc-0.4-0 liborc-0.4-dev 
+			libasound2-dev python-gtk2 libzmq3-dev libzmq5 python-requests python-sphinx 
+			libcomedi-dev python-zmq libqwt-dev python-six libgps-dev libgps23 gpsd 
+			gpsd-clients python-gps python-setuptools libgmp-dev python3-numpy python3-mako 
+			python3-sphinx python3-lxml libqwt-qt5-dev libqt5opengl5-dev python3-pyqt5 
+			liblog4cpp5-dev python3-yaml python3-click python3-click-plugins python3-zmq python3-scipy
+			libi2c-dev libsqlite3-dev libwxgtk3.0-dev freeglut3-dev python3-pip"
+
+			CMAKE_FLAG1=""
+			CMAKE_FLAG2=""
+			CMAKE_FLAG3=""
+			;;
+
 		*)
 			my_echo Your Ubuntu release not supported--cannot proceed
 			doexit WRONGRELEASE
@@ -466,7 +490,7 @@ function prereqs {
 		done
 		
 	else
-		my_echo This script supports only Ubuntu 20.04 LTS
+		my_echo This script supports only Ubuntu 18.04 / 20.04 LTS
 		doexit WRONGSYSTEM
 	fi
 	PATH=$PATH
@@ -529,7 +553,7 @@ function gitfetch {
 		git submodule status >>$LOGDEV 2>&1
 		cd ..
 	fi
-	yes | pip3 install git+https://github.com/pyqtgraph/pyqtgraph@develop
+	pip3 install git+https://github.com/pyqtgraph/pyqtgraph@develop
 	cd "$CWD"
 	my_echo Done
 
@@ -1115,7 +1139,7 @@ kernel.shmmax = 2147483648
 }
 
 function pythonpath {
-	for PYVER in 3.8
+	for PYVER in 3.6 3.8
 	do
 		for type in "" 64
 		do
