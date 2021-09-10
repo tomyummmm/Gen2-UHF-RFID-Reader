@@ -941,30 +941,9 @@ function LimeSuite {
 	# LimeSuite build and install
 	#
 	cd "$CWD"
-
-	#Install dependencies
-	my_echo Installing LimeSuite dependencies...
-	PKGLIST="libi2c-dev libsqlite3-dev libwxgtk3.0-dev freeglut3-dev"
-
-	for pkg in $PKGLIST; do checkpkg $pkg; done
-	my_echo Done checking packages
-	for pkg in $PKGLIST
-	do
-		my_echo Installing $pkg
-		sudo apt-get -y --ignore-missing install $pkg >>$LOGDEV 2>&1
-	done
-
 	my_echo Building LimeSuite...
 	my_echo "=============> THIS WILL TAKE SOME TIME <============="
 	my_echo
-	if [ ! -d LimeSuite ]
-	then
-		git clone https://github.com/myriadrf/LimeSuite.git
-		cd LimeSuite
-		git checkout stable
-		cd ..
-	fi
-
 	cd LimeSuite
 	rm -rf builddir
 	mkdir builddir

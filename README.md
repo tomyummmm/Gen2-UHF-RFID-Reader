@@ -30,7 +30,7 @@ chmod a+x ./build-script
 
 3. Add PYTHONPATH to ~/.bashrc
 ```sh
-echo 'export PYTHONPATH=/usr/local/lib/python2.7/dist-packages' >> ~./bashrc
+echo 'export PYTHONPATH=/usr/local/lib/python2.7/dist-packages' >> ~/.bashrc
 ```
 
 4. Source ~/.bashrc
