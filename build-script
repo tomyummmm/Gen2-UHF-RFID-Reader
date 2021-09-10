@@ -818,27 +818,27 @@ function rtl_build {
 	fi
 
 	cd "$CWD"
-	# if [ -d gr-iqbal ]
-	# then
-	# 	my_echo -n Building gr-iqbal...
-	# 	cd gr-iqbal
-	# 	rm -rf build
-	# 	mkdir -p build
-	# 	cd build
-	# 	cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 ../ >>$LOGDEV 2>&1
-	# 	make clean >>$LOGDEV 2>&1
-	# 	make >>$LOGDEV 2>&1
-	# 	if [ $? -ne 0 ]
-	# 	then
-	# 		my_echo gr-iqbal build apparently failed
-	# 		my_echo Exiting gr-iqbal build
-	# 		doexit IQBAL-BUILD-FAIL1
-	# 	else
-	# 		sudo make install  >>$LOGDEV 2>&1
-	# 		my_echo Done building gr-iqbal
-	# 		cd "$CWD"
-	# 	fi
-	# fi
+	if [ -d gr-iqbal ]
+	then
+		my_echo -n Building gr-iqbal...
+		cd gr-iqbal
+		rm -rf build
+		mkdir -p build
+		cd build
+		cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 ../ >>$LOGDEV 2>&1
+		make clean >>$LOGDEV 2>&1
+		make >>$LOGDEV 2>&1
+		if [ $? -ne 0 ]
+		then
+			my_echo gr-iqbal build apparently failed
+			my_echo Exiting gr-iqbal build
+			doexit IQBAL-BUILD-FAIL1
+		else
+			sudo make install  >>$LOGDEV 2>&1
+			my_echo Done building gr-iqbal
+			cd "$CWD"
+		fi
+	fi
 
 	if [ -d bladeRF  ]
 	then
