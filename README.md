@@ -12,6 +12,7 @@ The project is based on the RFID Gen2 Reader available at https://github.com/ran
 ## **This script has been modified and only supports Ubuntu 18.04 LTS. Ubuntu 20.04 is not supported due to deprecation of Python 2.7, qt4 and GNURadio 3.7.x. Ubuntu versions below 18.04 LTS and other linux distros can be supported, but require editing of the build-script to include the pre-requisites, see the original build-gnuradio by Nkargas.**
 
 ## Installation
+The whole process may take up to two hours to complete, depending on the capabilities of your system. A faster CPU with more cores and threads will be quicker to compile. AMD Ryzen 5 1600 -j11 took \~45 minutes to complete, Intel i5-8250U -j7 took \~1 hour 6 minutes to complete, Intel i5-3230m -j3 took \~1 hour 30 minutes to complete.
 
 - Install log4cpp (http://log4cpp.sourceforge.net/)
 - Using build-script will automatically fetch, build and install the following:

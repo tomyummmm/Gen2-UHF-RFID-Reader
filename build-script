@@ -221,6 +221,14 @@ then
 	exit
 fi
 
+echo ==============================================================================
+echo This script has been modified and only supports Ubuntu 18.04 LTS. 
+echo Ubuntu 20.04 is not supported due to deprecation of Python 2.7, qt4 and 
+echo GNURadio 3.7.x. Ubuntu versions below 18.04 LTS and other linux distros can
+echo be supported, but require editing of the build-script to include the
+echo pre-requisites, see the original build-gnuradio by Nkargas.
+echo ==============================================================================
+echo
 echo This script will install UHD driver, GNU Radio, SoapySDR, LimeSuite, 
 echo Gen2 UHF RFID Reader, rtl-sdr, gr-osmosdr, gr-iqbal, hackrf, bladeRF,
 echo airspyone_host from current GIT sources with some version control.
@@ -236,6 +244,7 @@ echo " "
 echo The whole process may take up to two hours to complete, depending on the
 echo capabilities of your system. A faster CPU with more cores and threads will be
 echo quicker to compile. AMD Ryzen 5 1600 -j11 took \~45 minutes to complete, 
+echo Intel i5-8250U -j7 took \~1 hour 6 minutes to complete,
 echo Intel i5-3230m -j3 took \~1 hour 30 minutes to complete.
 echo
 echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
