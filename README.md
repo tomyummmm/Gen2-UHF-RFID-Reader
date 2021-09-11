@@ -17,16 +17,27 @@ The whole process may take up to two hours to complete, depending on the capabil
 - Log4cpp is installed on Ubuntu 20.04 LTS, Ubuntu 18.04 requires manaual installation here (http://log4cpp.sourceforge.net/)
 - Using build-script will automatically fetch, build and install the following:
 
-UHD driver + GNU Radio + SoapySDR + LimeSuite + Gen2 UHF RFID Reader + rtl-sdr + gr-osmosdr + gr-iqbal + hackrf + bladeRF + airspyone_host
+Package           | Branch
+------------------|-----------------
+GNU Radio         | maint-3.8
+UHD 			  | 3.15 LTS
+rtl-sdr 		  | master
+gr-osmosdr 		  | gr3.8
+gr-iqbal 		  | gr3.8
+hackrf     		  | master
+bladeRF           | master
+airspyone_host    | master
+SoapySDR          | master
+LimeSuite 		  | stable
 
 1. Grant permissions 
 ```sh
 chmod a+x ./build-script
 ```
 
-2. Execute with the following flags 
+2. Execute with the following flags, refer below for usage
 ```sh
-./build-script -ja -v
+./build-script -ja
 ```
 
 3. Add PYTHONPATH and LD Library to ~/.bashrc
@@ -51,8 +62,8 @@ source ~/.bashrc
 
 5. Restart PC for mod_groups to take effect
 
-Usage: build-script [--help|-h] [-v|--verbose] [-jN] [-ja] 
-                      [-l|--logfile logfile ] [-u|--users ulist] funcs
+## Usage
+build-script [--help|-h] [-v|--verbose] [-jN] [-ja] [-l|--logfile logfile ] [-u|--users ulist] funcs
 
  Flags        |  Description                                             
 --------------|----------------------------------------------------------
@@ -82,6 +93,7 @@ G2RFID          | Build Gen2 UHF RFID Reader
 mod_groups      | Modify the /etc/groups and add user to group 'usrp'
 mod_udev        | Add UDEV rule for USRP1
 mod_sysctl      | Modify SYSCTL for larger net buffers
+pythonpath		| Print out PYTHONPATH
 
 
 ## Checking the installation

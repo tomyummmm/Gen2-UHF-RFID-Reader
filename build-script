@@ -74,6 +74,7 @@ mod_sysctl      - modify SYSCTL for larger net buffers
 SoapySDR        - build only SoapySDR
 LimeSuite       - build only LimeSuite
 G2RFID          - build only Gen2 UHF RFID Reader
+pythonpath			- print out PYTHONPATH
 !EOF!
 
 }
@@ -93,7 +94,7 @@ UTAG=None
 GTAG=None
 export LC_LANG=C
 EXTRAS=""
-PULLED_LIST="gnuradio uhd rtl-sdr gr-osmosdr gr-iqbal hackrf bladeRF airspyone_host SoapySDR" # gr-baz not installed?
+PULLED_LIST="gnuradio uhd rtl-sdr gr-osmosdr gr-iqbal hackrf bladeRF airspyone_host SoapySDR LimeSuite" # gr-baz not installed?
 which python3 >/dev/null 2>&1
 if [ $? -eq 0 ]
 then
@@ -230,7 +231,7 @@ echo Gen2 UHF RFID Reader, rtl-sdr, gr-osmosdr, gr-iqbal, hackrf, bladeRF,
 echo airspyone_host from current GIT sources with some version control.
 echo You will require Internet access from the computer on which this
 echo script runs.  You will also require SUDO access.  You will require
-echo approximately 12GB of free disk space to perform the build.
+echo approximately 16GB of free disk space to perform the build.
 echo " "
 echo This script will, as a side-effect, remove any existing GNU Radio
 echo installation that was installed from your Linux distribution packages.
@@ -275,7 +276,7 @@ SPACE=`df $HOME| grep -v blocks|grep '%'`
 SPACE=`echo $SPACE | awk '/./ {n=NF-2; printf ("%d\n", $n/1.0e3)}'`
 
 
-if [ $SPACE -lt 500 ]
+if [ $SPACE -lt 16000 ]
 then
 	echo "You don't appear to have enough free disk space on $HOME"
 	echo to complete this build/install
@@ -513,12 +514,29 @@ function prereqs {
 function gitfetch {
 	date=`date +%Y%m%d%H%M%S`
 	echo This script will fetch GNU Radio branch maint-3.8 from the repositories, along with compatible
-	echo  extras.
-	echo -n "Is this OK? (y / n) "
+	echo extras. If it already exists, it will be renamed with the date appended to the end, and a new
+	echo download will initiate. The versions of each package is:
+	echo GNU Radio 			maint-3.8
+	echo UHD 						3.15 LTS
+	echo rtl-sdr 				master
+	echo gr-osmosdr 		gr3.8
+	echo gr-iqbal 			gr3.8
+	echo hackrf     		master
+	echo bladeRF        master
+	echo airspyone_host master
+	echo SoapySDR       master
+	echo LimeSuite 			stable
+	echo -n "Is this OK? (yes / no / skip) "
 	read ans
 	
 	case $ans in
 		Y|y|YES|yes|Yes)
+			;;
+		N|n|NO|no|No)
+			exit
+			;;
+		S|s|skip|SKIP|Skip)
+			return
 			;;
 		*)
 			exit
@@ -571,6 +589,7 @@ function gitfetch {
 	# rm -rf gr-baz
 	rm -rf rtl-sdr
 	rm -rf gr-osmosdr
+	rm -rf gr-iqbal
 	rm -rf hackrf
 	rm -rf bladeRF
 	rm -rf airspyone_host
@@ -587,6 +606,7 @@ function gitfetch {
 		git checkout gr3.8
 		git submodule init  >>$LOGDEV 2>&1
 		git submodule update >>$LOGDEV 2>&1
+		git submodule status >>$LOGDEV 2>&1
 		cd ..
 	fi
 
@@ -1314,8 +1334,15 @@ esac
 
 for arg in $*
 do
+	my_echo Starting function $fcn at: `date`
 	cd "$CWD"
 	$arg
+	my_echo Done function $fcn at: `date`
 done
+
+my_echo 
+my_echo You may wish to run the following commands after connecting LimeSDR:
+my_echo SoapySDRUtil --info
+my_echo SoapySDRUtil --probe
 my_echo All Done
 doexit SUCCESS
