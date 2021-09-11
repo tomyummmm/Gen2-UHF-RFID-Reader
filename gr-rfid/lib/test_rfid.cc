@@ -26,10 +26,20 @@
 
 #include <cppunit/TextTestRunner.h>
 #include <cppunit/XmlOutputter.h>
+#include <gnuradio/attributes.h>
+#include <cppunit/TestSuite.h>
 
 #include <gnuradio/unittests.h>
 #include "qa_rfid.h"
 #include <iostream>
+
+
+CppUnit::TestSuite *qa_rfid::suite()
+{
+	CppUnit::TestSuite *s = new CppUnit::TestSuite("rfid");
+
+	return s;
+}
 
 int main (int argc, char **argv)
 {
