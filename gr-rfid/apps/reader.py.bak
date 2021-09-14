@@ -19,7 +19,7 @@ class reader_top_block(gr.top_block):
     device_addr=self.usrp_address_source,
     stream_args=uhd.stream_args(
     cpu_format="fc32",
-    channels=list(range(1)),
+    channels=range(1),
     ),
     )
     self.source.set_samp_rate(self.adc_rate)
@@ -34,7 +34,7 @@ class reader_top_block(gr.top_block):
     device_addr=self.usrp_address_sink,
     stream_args=uhd.stream_args(
     cpu_format="fc32",
-    channels=list(range(1)),
+    channels=range(1),
     ),
     )
     self.sink.set_samp_rate(self.dac_rate)
@@ -123,7 +123,7 @@ if __name__ == '__main__':
   main_block.start()
 
   while(1):
-    inp = input("'Q' to quit \n")
+    inp = raw_input("'Q' to quit \n")
     if (inp == "q" or inp == "Q"):
       break
 

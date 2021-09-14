@@ -1,15 +1,38 @@
 # Gen2 UHF RFID Reader
-This is a Gen2 UHF RFID Reader. It is able to identify commercial Gen2 RFID Tags with FM0 line coding and 40kHz data rate (BLF), and extract their EPC. It requires USRPN200 and a RFX900 or SBX daughterboard.  
+This is a Gen2 UHF RFID Reader. It is able to identify commercial Gen2 RFID Tags with FM0 line coding and 40kHz data rate (BLF), and extract their EPC. This project is a Work-in-Progress with LimeSDR and TBD components. 
 
 The project is based on the RFID Gen2 Reader available at https://github.com/ransford/gen2_rfid. The reader borrows elements from the software developed by Buettner, i.e. Data flow: Gate -> Decoder -> Reader as well as the conception regarding the detection of the reader commands. CRC calculation and checking functions were also adapted from https://www.cgran.org/browser/projects/gen2_rfid/.
 
-### Implemented GNU Radio Blocks:
+## Table of contents
+
+* 1. [Implemented GNU Radio Blocks](#implemented-gnu-radio-blocks)
+* 2. [Porting](#porting)
+* 3. [Warning](#warning)
+* 4. [Installation](#installation)
+* 5. [Usage](#usage)
+* 6. [Checking the installation](#checking-the-installation)
+  <!-- * 6.1. [Check PYTHONPATH](#check-pythonpath)
+  * 6.2. [Check SoapySDRUtil](#check-soapysdrutil) -->
+* 7. [Configuration](#configuration)
+* 8. [How to run](#how-to-run)
+* 9. [Logging](#logging)
+* 10. [Debugging](#debugging)
+
+
+
+## Implemented GNU Radio Blocks:
 
 - Gate : Responsible for reader command detection.  
 - Tag decoder : Responsible for frame synchronization, channel estimation, symbol period estimation and detection.  
 - Reader : Create/send reader commands.
 
-## **This script has been modified and only supports Ubuntu 18.04 / 20.04 LTS. Ubuntu versions below 18.04 LTS and other linux distros are not supported due to deprecation of Python 2.7, qt4 when upgrading to GNU Radio 3.8.x.**
+## Porting
+**The gr-rfid has been ported from GNU Radio 3.7 to 3.8, and reader.py has been ported from Python 2.7 to Python 3 using 2to3 library (https://docs.python.org/3/library/2to3.html).**
+
+## Warning
+**This script has been modified and only supports Ubuntu 18.04 / 20.04 LTS. Ubuntu versions below 18.04 LTS and other linux distros are not supported due to deprecation of Python 2.7, qt4 when upgrading to GNU Radio 3.8.x.**
+
+**The build-script will require approximately 16GB of disk space in order to download, build and install all packages. If only gr-rfid is required, follow Step 1 and 2a.**
 
 ## Installation
 The whole process may take up to two hours to complete, depending on the capabilities of your system. A faster CPU with more cores and threads will be quicker to compile. AMD Ryzen 5 1600 -j11 took \~45 minutes to complete, Intel i5-8250U -j7 took \~1 hour 6 minutes to complete, Intel i5-3230m -j3 took \~1 hour 30 minutes to complete.
@@ -35,32 +58,37 @@ LimeSuite 		  | stable
 chmod a+x ./build-script
 ```
 
-2. Execute with the following flags, refer below for usage
+2. Execute with the following flags to install everything, refer to Usage below for more details.
 ```sh
 ./build-script -ja
 ```
+- 2a. Execute with the following flag and function to install only G2RFID, requires GNU Radio 3.8 installed.
+```sh
+./build-script -ja G2RFID
+```
 
-3. Add PYTHONPATH and LD Library to ~/.bashrc
+3. Add PYTHONPATH to ~/.bashrc
 
-Ubuntu 20.04
+- Ubuntu 20.04
 ```sh
 echo 'export PYTHONPATH=/usr/local/lib/python3/dist-packages:/usr/local/lib/python3/site-packages:$PYTHONPATH' >> ~/.bashrc
 ```
-Ubuntu 18.04
+- Ubuntu 18.04
 ```sh
 echo 'export PYTHONPATH=/usr/local/lib/python3.6/dist-packages:/usr/local/lib/python3.6/site-packages:$PYTHONPATH' >> ~/.bashrc
 ```
-Both
+
+4. Add LD Library to ~/.bashrc
 ```sh
 echo 'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH' >> ~/.bashrc
 ```
 
-4. Source ~/.bashrc
+5. Source ~/.bashrc
 ```sh
 source ~/.bashrc
 ```
 
-5. Restart PC for mod_groups to take effect
+6. Restart PC for mod_groups to take effect
 
 ## Usage
 build-script [--help|-h] [-v|--verbose] [-jN] [-ja] [-l|--logfile logfile ] [-u|--users ulist] funcs
