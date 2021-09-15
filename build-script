@@ -38,19 +38,19 @@ function help {
 	cat <<!EOF!
 	
 Usage: build-script [--help|-h] [-v|--verbose] [-jN] [-ja] 
-                      [-l|--logfile logfile ] [-u|--users ulist] funcs
+                      [-l|--logfile logfile ] [-u|--users ulist] [-n] funcs
 
--v|--verbose   - turn on verbose logging to stdout
+-v|--verbose    - turn on verbose logging to stdout
 
--jN            - have make use N concurrent jobs (2-9)
+-jN             - have make use N concurrent jobs (2-9)
 
--ja            - have make use N concurrent jobs with auto setting of N
+-ja             - have make use N concurrent jobs with auto setting of N
                  (based on number of cpu cores on build system)
-                 
 
--u|--users ul  - add comma-separated users to 'usrp' group in addition
+-u|--users ul   - add comma-separated users to 'usrp' group in addition
                  to calling user ( $USER )
-                 
+           
+-n              - dry-run for uninstallation only
                 
 -l|--logfile lf - log messages to 'lf'
 -ut <tag>       - set tag for UHD checkout to <tag>
@@ -74,7 +74,8 @@ mod_sysctl      - modify SYSCTL for larger net buffers
 SoapySDR        - build only SoapySDR
 LimeSuite       - build only LimeSuite
 G2RFID          - build only Gen2 UHF RFID Reader
-pythonpath			- print out PYTHONPATH
+pythonpath      - print out PYTHONPATH
+uninstall       - uninstall all packages, remove all downloaded packages and build files.
 !EOF!
 
 }
@@ -88,6 +89,7 @@ fi
 
 VERBOSE=No
 JFLAG=""
+DRYRUN=""
 LOGDEV=/dev/null
 USERSLIST=None
 UTAG=None
@@ -133,6 +135,11 @@ do
 		-v|--verbose)
 			LOGDEV=/dev/stdout
 			VERBOSE=Yes
+			shift
+			;;
+
+		-n)
+			DRYRUN=-n
 			shift
 			;;
 			
@@ -222,6 +229,7 @@ then
 	exit
 fi
 
+function installcheck {
 echo ==============================================================================
 echo This script has been modified and only supports Ubuntu 18.04 / 20.04 LTS. 
 echo ==============================================================================
@@ -336,6 +344,7 @@ then
 	esac
 fi
 rm -rf *.20*.bgmoved
+}
 
 function my_echo {
 	if [ $LOGDEV = /dev/stdout ]
@@ -1159,7 +1168,7 @@ kernel.shmmax = 2147483648
 }
 
 function pythonpath {
-	for PYVER in 3.6 3.8
+	for PYVER in 3 3.6 3.7 3.8
 	do
 		for type in "" 64
 		do
@@ -1297,6 +1306,7 @@ function sudocheck {
 }
 
 function all {
+	installcheck
 	my_echo Starting all functions at: `date`
 	cd "$CWD"
 	prereqs
@@ -1323,11 +1333,186 @@ function all {
 	my_echo Done all functions at: `date`
 }
 
+function uninstall {
+	echo ==============================================================================
+	echo This script will uninstall all packages, remove all downloaded packages and build files.
+	echo
+	echo CWD: "$CWD"
+	# echo JFLAG: "$JFLAG"
+	echo DRYRUN: "$DRYRUN"
+	echo VERBOSE: "$VERBOSE"
+	echo ==============================================================================
+	echo
+	echo -n "Proceed? (y / n) "
+	read ans
+	case $ans in
+		y|Y|YES|yes|Yes)
+			PROCEED=y
+		;;
+		*)
+			exit
+	esac
+
+	sudocheck
+	my_echo
+	
+	cd "$CWD"
+	if [ -d uhd ]
+	then
+		my_echo Uninstalling uhd...
+		cd uhd
+		cd host
+		cd build
+		sudo make $DRYRUN uninstall >>$LOGDEV 2>&1
+		my_echo Done uninstalling uhd
+		my_echo
+	fi
+
+	cd "$CWD"
+	if [ -d gnuradio ]
+	then
+		my_echo Uninstalling gnuradio...
+		cd gnuradio
+		cd build
+		sudo make $DRYRUN uninstall >>$LOGDEV 2>&1
+		my_echo Done uninstalling gnuradio
+		my_echo
+	fi
+
+	cd "$CWD"
+	if [ -d rtl-sdr ]
+	then
+		my_echo Uninstalling rtl-sdr...
+		cd rtl-sdr
+		cd build
+		sudo make $DRYRUN uninstall >>$LOGDEV 2>&1
+		my_echo Done uninstalling rtl-sdr
+		my_echo
+	fi
+
+	cd "$CWD"
+	if [ -d gr-iqbal ]
+	then
+		my_echo Uninstalling gr-iqbal...
+		cd gr-iqbal
+		cd build
+		sudo make $DRYRUN uninstall >>$LOGDEV 2>&1
+		my_echo Done uninstalling gr-iqbal
+		my_echo
+	fi
+
+	cd "$CWD"
+	if [ ! -d gr-osmosdr ]
+	then
+		cd gr-osmosdr
+		my_echo Uninstalling gr-osmosdr...
+		cd build
+		sudo make $DRYRUN uninstall >>$LOGDEV 2>&1
+		my_echo Done uninstalling gr-osmosdr
+		my_echo
+	fi
+	
+	cd "$CWD"
+	if [ -d hackrf ]
+	then
+		my_echo Uninstalling hackrf...
+		cd hackrf
+		cd host
+		cd build
+		sudo make $DRYRUN uninstall >>$LOGDEV 2>&1
+		my_echo Done uninstalling hackrf
+		my_echo
+		cd "$CWD"
+	fi
+
+	cd "$CWD"
+	if [ -d bladeRF  ]
+	then
+		my_echo Uninstalling bladeRF...
+		cd bladeRF
+		cd host
+		cd build
+		sudo make $DRYRUN uninstall >>$LOGDEV 2>&1
+		my_echo Done uninstalling bladeRF
+		my_echo
+	fi
+
+	cd "$CWD"
+	if [ -d airspyone_host ]
+	then
+		cd airspyone_host
+		cd build
+		sudo make $DRYRUN uninstall >>$LOGDEV 2>&1
+		my_echo Done uninstalling airspyone_host
+		my_echo
+	fi
+
+	cd "$CWD"
+	if [ -d SoapySDR ]
+	then
+		my_echo Uninstalling SoapySDR...
+		cd SoapySDR
+		cd build
+		sudo make $DRYRUN uninstall >>$LOGDEV 2>&1
+		my_echo Done uninstalling SoapySDR
+		my_echo
+	fi
+
+	cd "$CWD"
+	if [ -d LimeSuite ]
+	then
+		my_echo Uninstalling LimeSuite...
+		cd LimeSuite
+		cd builddir
+		sudo make $DRYRUN uninstall >>$LOGDEV 2>&1
+		my_echo Done uninstalling LimeSuite
+		my_echo
+	fi
+
+	cd "$CWD"
+	if [ -d gr-rfid ]
+	then
+		my_echo Uninstalling gr-rfid...
+		cd gr-rfid
+		cd build
+		sudo make $DRYRUN uninstall >>$LOGDEV 2>&1
+		my_echo Done uninstalling gr-rfid
+		my_echo
+	fi
+	
+	cd "$CWD"
+	my_echo Done uninstalling uhd, gnuradio, rtl-sdr, gr-osmosdr, gr-iqbal, hackrf, bladeRF, airspyone_host, SoapySDR, LimeSuite, G2RFID.
+	my_echo
+	my_echo Removing all downloaded packages and build files.
+	if [ $DRYRUN != -n ]
+	then
+		rm -rf uhd
+		rm -rf gnuradio
+		rm -rf rtl-sdr
+		rm -rf gr-osmosdr
+		rm -rf gr-iqbal
+		rm -rf hackrf
+		rm -rf bladeRF
+		rm -rf airspyone_host
+		rm -rf SoapySDR
+		rm -rf LimeSuite
+		rm -rf G2RFID/build
+		my_echo Done removing all downloaded packages and build files.
+	else
+		my_echo dry-run is on, skip removing all downloaded packages and build files.
+	fi
+
+}
+
 PATH=$PATH
 export PATH
 case $# in
 	0)
 		all
+		my_echo
+		my_echo You may wish to run the following commands after connecting LimeSDR:
+		my_echo SoapySDRUtil --info
+		my_echo SoapySDRUtil --probe
 		my_echo All Done
 		doexit SUCCESS
 esac
@@ -1341,8 +1526,5 @@ do
 done
 
 my_echo 
-my_echo You may wish to run the following commands after connecting LimeSDR:
-my_echo SoapySDRUtil --info
-my_echo SoapySDRUtil --probe
 my_echo All Done
 doexit SUCCESS

@@ -17,7 +17,7 @@ The project is based on the RFID Gen2 Reader available at https://github.com/ran
 * 8. [How to run](#how-to-run)
 * 9. [Logging](#logging)
 * 10. [Debugging](#debugging)
-
+* 11. [Uninstallation](#uninstallation)
 
 
 ## Implemented GNU Radio Blocks:
@@ -99,6 +99,7 @@ build-script [--help|-h] [-v|--verbose] [-jN] [-ja] [-l|--logfile logfile ] [-u|
 -jN           | Have make use N concurrent jobs
 -ja           | Have make use N concurrent jobs with auto setting of N (based on number of cpu cores on build system)
 -u/--users ul | Add comma-separated users to 'usrp' group in addition to calling user ( $USER )
+-n            | Dry-run for uninstallation only
 -l/--logfile lf | Log messages to 'lf'
 -ut <tag>      | Set tag for UHD checkout to <tag>
 -ucf <ucflags> | Set UHD CMake flags to <ucflags>
@@ -122,7 +123,7 @@ mod_groups      | Modify the /etc/groups and add user to group 'usrp'
 mod_udev        | Add UDEV rule for USRP1
 mod_sysctl      | Modify SYSCTL for larger net buffers
 pythonpath		| Print out PYTHONPATH
-
+uninstall       | Uninstall all packages, remove all downloaded packages and build files.
 
 ## Checking the installation
 
@@ -258,7 +259,17 @@ https://github.com/nkargas/Gen2-UHF-RFID-Reader/issues/4
 
 https://github.com/nkargas/Gen2-UHF-RFID-Reader/issues/10
 
-    
+
+## Uninstallation
+Execute with the following function to uninstall all packages, remove all downloaded packages and build files. Use -n and -v flags for dry-run and verbose output.
+```sh
+./build-script uninstall
+```
+```sh
+./build-script -n -v uninstall
+```
+
+
 ## Hardware:
 
   - 2x LimeSDR
