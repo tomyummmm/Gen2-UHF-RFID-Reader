@@ -263,10 +263,10 @@ https://github.com/nkargas/Gen2-UHF-RFID-Reader/issues/10
 ## Uninstallation
 Execute with the following function to uninstall all packages, remove all downloaded packages and build files. Use -n and -v flags for dry-run and verbose output.
 ```sh
-./build-script uninstall
+./build-script -ja uninstall
 ```
 ```sh
-./build-script -n -v uninstall
+./build-script -n -v -ja uninstall
 ```
 
 

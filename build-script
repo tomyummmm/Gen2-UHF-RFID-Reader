@@ -1338,7 +1338,7 @@ function uninstall {
 	echo This script will uninstall all packages, remove all downloaded packages and build files.
 	echo
 	echo CWD: "$CWD"
-	# echo JFLAG: "$JFLAG"
+	echo JFLAG: "$JFLAG"
 	echo DRYRUN: "$DRYRUN"
 	echo VERBOSE: "$VERBOSE"
 	echo ==============================================================================
@@ -1355,29 +1355,6 @@ function uninstall {
 
 	sudocheck
 	my_echo
-	
-	cd "$CWD"
-	if [ -d uhd ]
-	then
-		my_echo Uninstalling uhd...
-		cd uhd
-		cd host
-		cd build
-		sudo make $DRYRUN uninstall >>$LOGDEV 2>&1
-		my_echo Done uninstalling uhd
-		my_echo
-	fi
-
-	cd "$CWD"
-	if [ -d gnuradio ]
-	then
-		my_echo Uninstalling gnuradio...
-		cd gnuradio
-		cd build
-		sudo make $DRYRUN uninstall >>$LOGDEV 2>&1
-		my_echo Done uninstalling gnuradio
-		my_echo
-	fi
 
 	cd "$CWD"
 	if [ -d rtl-sdr ]
@@ -1385,7 +1362,7 @@ function uninstall {
 		my_echo Uninstalling rtl-sdr...
 		cd rtl-sdr
 		cd build
-		sudo make $DRYRUN uninstall >>$LOGDEV 2>&1
+		sudo make $DRYRUN $JFLAG uninstall >>$LOGDEV 2>&1
 		my_echo Done uninstalling rtl-sdr
 		my_echo
 	fi
@@ -1396,18 +1373,18 @@ function uninstall {
 		my_echo Uninstalling gr-iqbal...
 		cd gr-iqbal
 		cd build
-		sudo make $DRYRUN uninstall >>$LOGDEV 2>&1
+		sudo make $DRYRUN $JFLAG uninstall >>$LOGDEV 2>&1
 		my_echo Done uninstalling gr-iqbal
 		my_echo
 	fi
 
 	cd "$CWD"
-	if [ ! -d gr-osmosdr ]
+	if [ -d gr-osmosdr ]
 	then
-		cd gr-osmosdr
 		my_echo Uninstalling gr-osmosdr...
+		cd gr-osmosdr
 		cd build
-		sudo make $DRYRUN uninstall >>$LOGDEV 2>&1
+		sudo make $DRYRUN $JFLAG uninstall >>$LOGDEV 2>&1
 		my_echo Done uninstalling gr-osmosdr
 		my_echo
 	fi
@@ -1419,20 +1396,20 @@ function uninstall {
 		cd hackrf
 		cd host
 		cd build
-		sudo make $DRYRUN uninstall >>$LOGDEV 2>&1
+		sudo make $DRYRUN $JFLAG uninstall >>$LOGDEV 2>&1
 		my_echo Done uninstalling hackrf
 		my_echo
 		cd "$CWD"
 	fi
 
 	cd "$CWD"
-	if [ -d bladeRF  ]
+	if [ -d bladeRF ]
 	then
 		my_echo Uninstalling bladeRF...
 		cd bladeRF
 		cd host
 		cd build
-		sudo make $DRYRUN uninstall >>$LOGDEV 2>&1
+		sudo make $DRYRUN $JFLAG uninstall >>$LOGDEV 2>&1
 		my_echo Done uninstalling bladeRF
 		my_echo
 	fi
@@ -1440,9 +1417,10 @@ function uninstall {
 	cd "$CWD"
 	if [ -d airspyone_host ]
 	then
+		my_echo Uninstalling airspyone_host...
 		cd airspyone_host
 		cd build
-		sudo make $DRYRUN uninstall >>$LOGDEV 2>&1
+		sudo make $DRYRUN $JFLAG uninstall >>$LOGDEV 2>&1
 		my_echo Done uninstalling airspyone_host
 		my_echo
 	fi
@@ -1453,7 +1431,7 @@ function uninstall {
 		my_echo Uninstalling SoapySDR...
 		cd SoapySDR
 		cd build
-		sudo make $DRYRUN uninstall >>$LOGDEV 2>&1
+		sudo make $DRYRUN $JFLAG uninstall >>$LOGDEV 2>&1
 		my_echo Done uninstalling SoapySDR
 		my_echo
 	fi
@@ -1464,19 +1442,42 @@ function uninstall {
 		my_echo Uninstalling LimeSuite...
 		cd LimeSuite
 		cd builddir
-		sudo make $DRYRUN uninstall >>$LOGDEV 2>&1
+		sudo make $DRYRUN $JFLAG uninstall >>$LOGDEV 2>&1
 		my_echo Done uninstalling LimeSuite
 		my_echo
 	fi
 
 	cd "$CWD"
-	if [ -d gr-rfid ]
+	if [ -d gr-rfid/build/ ]
 	then
 		my_echo Uninstalling gr-rfid...
 		cd gr-rfid
 		cd build
-		sudo make $DRYRUN uninstall >>$LOGDEV 2>&1
+		sudo make $DRYRUN $JFLAG uninstall >>$LOGDEV 2>&1
 		my_echo Done uninstalling gr-rfid
+		my_echo
+	fi
+
+	cd "$CWD"
+	if [ -d uhd ]
+	then
+		my_echo Uninstalling uhd...
+		cd uhd
+		cd host
+		cd build
+		sudo make $DRYRUN $JFLAG uninstall >>$LOGDEV 2>&1
+		my_echo Done uninstalling uhd
+		my_echo
+	fi
+
+	cd "$CWD"
+	if [ -d gnuradio ]
+	then
+		my_echo Uninstalling gnuradio...
+		cd gnuradio
+		cd build
+		sudo make $DRYRUN $JFLAG uninstall >>$LOGDEV 2>&1
+		my_echo Done uninstalling gnuradio
 		my_echo
 	fi
 	
@@ -1484,19 +1485,19 @@ function uninstall {
 	my_echo Done uninstalling uhd, gnuradio, rtl-sdr, gr-osmosdr, gr-iqbal, hackrf, bladeRF, airspyone_host, SoapySDR, LimeSuite, G2RFID.
 	my_echo
 	my_echo Removing all downloaded packages and build files.
-	if [ $DRYRUN != -n ]
+	if [ "$DRYRUN" != -n ]
 	then
-		rm -rf uhd
-		rm -rf gnuradio
-		rm -rf rtl-sdr
-		rm -rf gr-osmosdr
-		rm -rf gr-iqbal
-		rm -rf hackrf
-		rm -rf bladeRF
-		rm -rf airspyone_host
-		rm -rf SoapySDR
-		rm -rf LimeSuite
-		rm -rf gr-rfid/build
+		sudo rm -rf rtl-sdr
+		sudo rm -rf gr-osmosdr
+		sudo rm -rf gr-iqbal
+		sudo rm -rf hackrf
+		sudo rm -rf bladeRF
+		sudo rm -rf airspyone_host
+		sudo rm -rf SoapySDR
+		sudo rm -rf LimeSuite
+		sudo rm -rf gr-rfid/build
+		sudo rm -rf uhd
+		sudo rm -rf gnuradio
 		my_echo Done removing all downloaded packages and build files.
 	else
 		my_echo dry-run is on, skip removing all downloaded packages and build files.
