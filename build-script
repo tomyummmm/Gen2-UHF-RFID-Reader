@@ -1496,7 +1496,7 @@ function uninstall {
 		rm -rf airspyone_host
 		rm -rf SoapySDR
 		rm -rf LimeSuite
-		rm -rf G2RFID/build
+		rm -rf gr-rfid/build
 		my_echo Done removing all downloaded packages and build files.
 	else
 		my_echo dry-run is on, skip removing all downloaded packages and build files.
