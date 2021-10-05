@@ -9,6 +9,7 @@ The project is based on the RFID Gen2 Reader available at https://github.com/ran
 * 2. [Porting](#porting)
 * 3. [Warning](#warning)
 * 4. [Installation](#installation)
+  * 4.1. [Setting environment variables](#setting-environment-variables)
 * 5. [Usage](#usage)
 * 6. [Checking the installation](#checking-the-installation)
   <!-- * 6.1. [Check PYTHONPATH](#check-pythonpath)
@@ -67,28 +68,44 @@ chmod a+x ./build-script
 ./build-script -ja G2RFID
 ```
 
-3. Add PYTHONPATH to ~/.bashrc
+3. Restart PC for mod_groups to take effect
+
+## Setting environment variables
+The function setenv does the following automatically:
+1. Add PYTHONPATH to ~/.bashrc and ~/.profile for terminal and graphical environments
 
 - Ubuntu 20.04
 ```sh
 echo 'export PYTHONPATH=/usr/local/lib/python3/dist-packages:/usr/local/lib/python3/site-packages:$PYTHONPATH' >> ~/.bashrc
 ```
+```sh
+echo 'export PYTHONPATH=/usr/local/lib/python3/dist-packages:/usr/local/lib/python3/site-packages:$PYTHONPATH' >> ~/.profile
+```
 - Ubuntu 18.04
 ```sh
 echo 'export PYTHONPATH=/usr/local/lib/python3.6/dist-packages:/usr/local/lib/python3.6/site-packages:$PYTHONPATH' >> ~/.bashrc
 ```
+```sh
+echo 'export PYTHONPATH=/usr/local/lib/python3.6/dist-packages:/usr/local/lib/python3.6/site-packages:$PYTHONPATH' >> ~/.profile
+```
 
-4. Add LD Library to ~/.bashrc
+2. Add LD Library to ~/.bashrc and ~/.profile
 ```sh
 echo 'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH' >> ~/.bashrc
 ```
+```sh
+echo 'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH' >> ~/.profile
+```
 
-5. Source ~/.bashrc
+3. Source ~/.bashrc and ~/.profile
 ```sh
 source ~/.bashrc
 ```
+```sh
+source ~/.profile
+```
 
-6. Restart PC for mod_groups to take effect
+
 
 ## Usage
 build-script [--help|-h] [-v|--verbose] [-jN] [-ja] [-l|--logfile logfile ] [-u|--users ulist] funcs
@@ -123,14 +140,17 @@ mod_groups      | Modify the /etc/groups and add user to group 'usrp'
 mod_udev        | Add UDEV rule for USRP1
 mod_sysctl      | Modify SYSCTL for larger net buffers
 pythonpath		| Print out PYTHONPATH
-uninstall       | Uninstall all packages, remove all downloaded packages and build files.
+setenv          | set environment variables for terminal and graphical GNU Radio Companion
+uninstall       | Uninstall all packages, remove all downloaded packages and build files
 
 ## Checking the installation
 
-1. Check PYTHONPATH
+1. Check PYTHONPATH and LD_LIBRARY_PATH
 ```sh
 > echo $PYTHONPATH
-/usr/local/lib/python3/dist-packages:/usr/local/lib/python3/site-packages:
+/usr/local/lib/python3/dist-packages:/usr/local/lib/python3/site-packages:/usr/local/lib/python3/dist-packages:/usr/local/lib/python3/site-packages:
+> echo $LD_LIBRARY_PATH
+/usr/local/lib:/usr/local/lib:
 ```
 
 2. Check SoapySDRUtil

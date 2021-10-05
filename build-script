@@ -75,7 +75,8 @@ SoapySDR        - build only SoapySDR
 LimeSuite       - build only LimeSuite
 G2RFID          - build only Gen2 UHF RFID Reader
 pythonpath      - print out PYTHONPATH
-uninstall       - uninstall all packages, remove all downloaded packages and build files.
+setenv          - set environment variables for terminal and graphical GNU Radio Companion
+uninstall       - uninstall all packages, remove all downloaded packages and build files
 !EOF!
 
 }
@@ -1198,6 +1199,64 @@ function pythonpath {
 	echo "*************************************************************"
 }
 
+function setenv {
+	echo
+	echo ==============================================================================
+	echo Attempting to set environment variables for terminal and 
+	echo graphical GNU Radio Companion export to ~/.bashrc and ~/.profile.
+	echo 
+	echo Ubuntu 20.04
+	echo 'export PYTHONPATH=/usr/local/lib/python3/dist-packages:/usr/local/lib/python3/site-packages:$PYTHONPATH'
+	echo 'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH'
+	echo
+	echo Ubuntu 18.04
+	echo 'export PYTHONPATH=/usr/local/lib/python3.6/dist-packages:/usr/local/lib/python3.6/site-packages:$PYTHONPATH'
+	echo 'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH'
+	echo 
+	echo Both
+	echo source ~/.bashrc
+	echo source ~/.profile
+	echo sudo ldconfig
+	echo 
+	echo ==============================================================================
+	echo -n "Proceed? (y / n) "
+
+	read ans
+	case $ans in
+		y|Y|YES|yes|Yes)
+			PROCEED=y
+		;;
+		*)
+			exit
+	esac
+	if [ -f /etc/lsb-release ]
+	then
+		case `grep DISTRIB_RELEASE /etc/lsb-release` in
+		*20.*)
+			echo 'export PYTHONPATH=/usr/local/lib/python3/dist-packages:/usr/local/lib/python3/site-packages:$PYTHONPATH' >> ~/.bashrc
+			echo 'export PYTHONPATH=/usr/local/lib/python3/dist-packages:/usr/local/lib/python3/site-packages:$PYTHONPATH' >> ~/.profile
+			;;
+
+		*18.*)
+			echo 'export PYTHONPATH=/usr/local/lib/python3.6/dist-packages:/usr/local/lib/python3.6/site-packages:$PYTHONPATH' >> ~/.bashrc
+			echo 'export PYTHONPATH=/usr/local/lib/python3.6/dist-packages:/usr/local/lib/python3.6/site-packages:$PYTHONPATH' >> ~/.profile
+			;;
+
+		*)
+			my_echo Your Ubuntu release not supported--cannot proceed
+			doexit WRONGRELEASE
+			;;
+		esac
+	echo 'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH' >> ~/.bashrc
+	echo 'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH' >> ~/.profile
+	source ~/.bashrc
+	source ~/.profile
+	sudo ldconfig
+	echo Completed setting environment variables
+	fi
+
+}
+
 function do_an_extra {
 	if [ -e $1 ]
 	then
@@ -1323,7 +1382,7 @@ function all {
 		gitfetch
 	fi
 	rm -f touch$$
-	for fcn in uhd_build firmware gnuradio_build rtl_build SoapySDR LimeSuite G2RFID mod_groups mod_udev mod_sysctl pythonpath extras
+	for fcn in uhd_build firmware gnuradio_build rtl_build SoapySDR LimeSuite G2RFID mod_groups mod_udev mod_sysctl pythonpath setenv extras
 	do
 		my_echo Starting function $fcn at: `date`
 		cd "$CWD"
