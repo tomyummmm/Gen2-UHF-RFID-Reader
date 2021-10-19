@@ -1031,7 +1031,7 @@ function G2RFID {
 	my_echo "=============> THIS WILL TAKE SOME TIME <============="
 	my_echo
 	cd gr-rfid
-	rm -rf build
+	sudo rm -rf build
 	mkdir build
 	cd build
 	cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 ../ >>$LOGDEV 2>&1
