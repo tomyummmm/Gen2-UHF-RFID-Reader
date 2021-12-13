@@ -72,6 +72,7 @@ mod_groups      - modify the /etc/groups and add user to group 'usrp'
 mod_udev        - add UDEV rule for USRP1
 mod_sysctl      - modify SYSCTL for larger net buffers
 SoapySDR        - build only SoapySDR
+SoapyUHD		- build only SoapyUHD plugin
 LimeSuite       - build only LimeSuite
 G2RFID          - build only Gen2 UHF RFID Reader
 pythonpath      - print out PYTHONPATH
@@ -97,7 +98,7 @@ UTAG=None
 GTAG=None
 export LC_LANG=C
 EXTRAS=""
-PULLED_LIST="gnuradio uhd rtl-sdr gr-osmosdr gr-iqbal hackrf bladeRF airspyone_host SoapySDR LimeSuite" # gr-baz not installed?
+PULLED_LIST="gnuradio uhd rtl-sdr gr-osmosdr gr-iqbal hackrf bladeRF airspyone_host SoapySDR SoapyUHD LimeSuite" # gr-baz not installed?
 which python3 >/dev/null 2>&1
 if [ $? -eq 0 ]
 then
@@ -235,7 +236,7 @@ echo ===========================================================================
 echo This script has been modified and only supports Ubuntu 18.04 / 20.04 LTS. 
 echo ==============================================================================
 echo
-echo This script will install UHD driver, GNU Radio, SoapySDR, LimeSuite, 
+echo This script will install UHD driver, GNU Radio, SoapySDR, SoapyUHD, LimeSuite, 
 echo Gen2 UHF RFID Reader, rtl-sdr, gr-osmosdr, gr-iqbal, hackrf, bladeRF,
 echo airspyone_host from current GIT sources with some version control.
 echo You will require Internet access from the computer on which this
@@ -989,6 +990,35 @@ function SoapySDR {
 	my_echo Done building/installing SoapySDR
 }
 
+function SoapyUHD {
+	sudocheck
+	#
+	# SoapyUHD build and install
+	#
+	cd "$CWD"
+	my_echo Building SoapyUHD...
+	my_echo "=============> THIS WILL TAKE SOME TIME <============="
+	my_echo
+	cd SoapyUHD
+	rm -rf build
+	mkdir build
+	cd build
+	cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 ../ >>$LOGDEV 2>&1
+	make clean >>$LOGDEV 2>&1
+	make $JFLAG >>$LOGDEV 2>&1
+	if [ $? -ne 0  ]
+	then
+		my_echo SoapyUHD build apparently failed
+		my_echo Exiting SoapyUHD build
+		doexit SoapyUHD-BUILD-FAIL1
+	fi
+
+	sudo make $JFLAG install >>$LOGDEV 2>&1
+	sudo ldconfig >>$LOGDEV 2>&1 
+	SoapySDRUtil --probe="driver=uhd"
+	my_echo Done building/installing SoapyUHD
+}
+
 function LimeSuite {
 	sudocheck
 	#
@@ -1202,20 +1232,23 @@ function pythonpath {
 function setenv {
 	echo
 	echo ==============================================================================
-	echo Attempting to set environment variables for terminal and 
-	echo graphical GNU Radio Companion export to ~/.bashrc and ~/.profile.
+	echo Attempting to set environment variables for terminal and graphical
+	echo GNU Radio Companion export to ~/.bashrc, ~/.profile and /etc/profile.d/.
 	echo 
 	echo Ubuntu 20.04
 	echo 'export PYTHONPATH=/usr/local/lib/python3/dist-packages:/usr/local/lib/python3/site-packages:$PYTHONPATH'
 	echo 'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH'
+	echo sudo sh -c "echo 'export PYTHONPATH=/usr/local/lib/python3/dist-packages:/usr/local/lib/python3/site-packages:\$PYTHONPATH' >> /etc/profile.d/gnuradio-path.sh"
 	echo
 	echo Ubuntu 18.04
 	echo 'export PYTHONPATH=/usr/local/lib/python3.6/dist-packages:/usr/local/lib/python3.6/site-packages:$PYTHONPATH'
 	echo 'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH'
+	echo sudo sh -c "echo 'export PYTHONPATH=/usr/local/lib/python3.6/dist-packages:/usr/local/lib/python3.6/site-packages:\$PYTHONPATH' >> /etc/profile.d/gnuradio-path.sh"
 	echo 
 	echo Both
 	echo source ~/.bashrc
 	echo source ~/.profile
+	echo sudo sh -c "echo 'export LD_LIBRARY_PATH=/usr/local/lib:\$LD_LIBRARY_PATH' >> /etc/profile.d/gnuradio-path.sh"
 	echo sudo ldconfig
 	echo 
 	echo ==============================================================================
@@ -1235,11 +1268,13 @@ function setenv {
 		*20.*)
 			echo 'export PYTHONPATH=/usr/local/lib/python3/dist-packages:/usr/local/lib/python3/site-packages:$PYTHONPATH' >> ~/.bashrc
 			echo 'export PYTHONPATH=/usr/local/lib/python3/dist-packages:/usr/local/lib/python3/site-packages:$PYTHONPATH' >> ~/.profile
+			sudo sh -c "echo 'export PYTHONPATH=/usr/local/lib/python3/dist-packages:/usr/local/lib/python3/site-packages:\$PYTHONPATH' >> /etc/profile.d/gnuradio-path.sh"
 			;;
 
 		*18.*)
 			echo 'export PYTHONPATH=/usr/local/lib/python3.6/dist-packages:/usr/local/lib/python3.6/site-packages:$PYTHONPATH' >> ~/.bashrc
 			echo 'export PYTHONPATH=/usr/local/lib/python3.6/dist-packages:/usr/local/lib/python3.6/site-packages:$PYTHONPATH' >> ~/.profile
+			sudo sh -c "echo 'export PYTHONPATH=/usr/local/lib/python3.6/dist-packages:/usr/local/lib/python3.6/site-packages:\$PYTHONPATH' >> /etc/profile.d/gnuradio-path.sh"
 			;;
 
 		*)
@@ -1249,6 +1284,7 @@ function setenv {
 		esac
 	echo 'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH' >> ~/.bashrc
 	echo 'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH' >> ~/.profile
+	sudo sh -c "echo 'export LD_LIBRARY_PATH=/usr/local/lib:\$LD_LIBRARY_PATH' >> /etc/profile.d/gnuradio-path.sh"
 	source ~/.bashrc
 	source ~/.profile
 	sudo ldconfig
@@ -1382,7 +1418,7 @@ function all {
 		gitfetch
 	fi
 	rm -f touch$$
-	for fcn in uhd_build firmware gnuradio_build rtl_build SoapySDR LimeSuite G2RFID mod_groups mod_udev mod_sysctl pythonpath setenv extras
+	for fcn in uhd_build firmware gnuradio_build rtl_build SoapySDR SoapyUHD LimeSuite G2RFID mod_groups mod_udev mod_sysctl pythonpath setenv extras
 	do
 		my_echo Starting function $fcn at: `date`
 		cd "$CWD"
@@ -1496,6 +1532,17 @@ function uninstall {
 	fi
 
 	cd "$CWD"
+	if [ -d SoapyUHD ]
+	then
+		my_echo Uninstalling SoapyUHD...
+		cd SoapyUHD
+		cd build
+		sudo make $DRYRUN $JFLAG uninstall >>$LOGDEV 2>&1
+		my_echo Done uninstalling SoapyUHD
+		my_echo
+	fi
+
+	cd "$CWD"
 	if [ -d LimeSuite ]
 	then
 		my_echo Uninstalling LimeSuite...
@@ -1541,7 +1588,7 @@ function uninstall {
 	fi
 	
 	cd "$CWD"
-	my_echo Done uninstalling uhd, gnuradio, rtl-sdr, gr-osmosdr, gr-iqbal, hackrf, bladeRF, airspyone_host, SoapySDR, LimeSuite, G2RFID.
+	my_echo Done uninstalling uhd, gnuradio, rtl-sdr, gr-osmosdr, gr-iqbal, hackrf, bladeRF, airspyone_host, SoapySDR, SoapyUHD, LimeSuite, G2RFID.
 	my_echo
 	my_echo Removing all downloaded packages and build files.
 	if [ "$DRYRUN" != -n ]
@@ -1553,6 +1600,7 @@ function uninstall {
 		sudo rm -rf bladeRF
 		sudo rm -rf airspyone_host
 		sudo rm -rf SoapySDR
+		sudo rm -rf SoapyUHD
 		sudo rm -rf LimeSuite
 		sudo rm -rf gr-rfid/build
 		sudo rm -rf uhd
@@ -1573,6 +1621,7 @@ case $# in
 		my_echo You may wish to run the following commands after connecting LimeSDR:
 		my_echo SoapySDRUtil --info
 		my_echo SoapySDRUtil --probe
+		my_echo uhd_find_devices
 		my_echo All Done
 		doexit SUCCESS
 esac
