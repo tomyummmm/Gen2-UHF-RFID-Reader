@@ -527,17 +527,17 @@ function gitfetch {
 	echo This script will fetch GNU Radio branch maint-3.8 from the repositories, along with compatible
 	echo extras. If it already exists, it will be renamed with the date appended to the end, and a new
 	echo download will initiate. The versions of each package is:
-	echo GNU Radio          maint-3.8
-	echo UHD                3.15 LTS
-	echo rtl-sdr            master
-	echo gr-osmosdr         gr3.8
-	echo gr-iqbal           gr3.8
-	echo hackrf             master
-	echo bladeRF            master
-	echo airspyone_host     master
-	echo SoapySDR           master
-	echo SoapyUHD           master
-	echo LimeSuite          stable
+	echo "GNU Radio          maint-3.8"
+	echo "UHD                3.15 LTS"
+	echo "rtl-sdr            master"
+	echo "gr-osmosdr         gr3.8"
+	echo "gr-iqbal           gr3.8"
+	echo "hackrf             master"
+	echo "bladeRF            master"
+	echo "airspyone_host     master"
+	echo "SoapySDR           master"
+	echo "SoapyUHD           master"
+	echo "LimeSuite          stable"
 	echo -n "Is this OK? (yes / no / skip) "
 	read ans
 	
