@@ -2,7 +2,7 @@
 
 id: rfid_global_vars
 label: global_vars
-category: rfid
+category: RFID
 
 parameters:
 -   id: '...'
