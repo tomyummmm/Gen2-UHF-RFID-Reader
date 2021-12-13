@@ -528,14 +528,15 @@ function gitfetch {
 	echo extras. If it already exists, it will be renamed with the date appended to the end, and a new
 	echo download will initiate. The versions of each package is:
 	echo GNU Radio 			maint-3.8
-	echo UHD 						3.15 LTS
-	echo rtl-sdr 				master
+	echo UHD 				3.15 LTS
+	echo rtl-sdr 			master
 	echo gr-osmosdr 		gr3.8
 	echo gr-iqbal 			gr3.8
-	echo hackrf     		master
-	echo bladeRF        master
-	echo airspyone_host master
-	echo SoapySDR       master
+	echo hackrf 			master
+	echo bladeRF 			master
+	echo airspyone_host 	master
+	echo SoapySDR 			master
+	echo SoapyUHD 			master
 	echo LimeSuite 			stable
 	echo -n "Is this OK? (yes / no / skip) "
 	read ans
@@ -627,6 +628,13 @@ function gitfetch {
 	rm -rf SoapySDR
 	my_echo -n Fetching SoapySDR via GIT...
 	git clone https://github.com/pothosware/SoapySDR.git >>$LOGDEV 2>&1
+
+	#
+	# GIT the SoapyUHD source tree
+	#
+	rm -rf SoapyUHD
+	my_echo -n Fetching SoapyUHD via GIT...
+	git clone https://github.com/pothosware/SoapyUHD.git >>$LOGDEV 2>&1
 
 	#
 	# GIT the LimeSuite source tree
@@ -830,113 +838,137 @@ function rtl_build {
 	cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 -DINSTALL_UDEV_RULES=ON ../ >>$LOGDEV 2>&1
 	make clean >>$LOGDEV 2>&1
 	make $JFLAG >>$LOGDEV 2>&1
-
 	if [ $? -ne 0  ]
 	then
 		my_echo rtl-sdr build apparently failed
 		my_echo Exiting rtl-sdr build
 		doexit RTL-BUILD-FAIL1
+	else
+		sudo make $JFLAG install >>$LOGDEV 2>&1
+		my_echo Done building rtl-sdr
 	fi
-	sudo make $JFLAG install >>$LOGDEV 2>&1
-	my_echo Done building rtl-sdr
 	
+
+
 	cd "$CWD"
-	if [ -d hackrf ]
+	if [ ! -d hackrf ]
 	then
-		my_echo -n Building hackrf...
-		cd hackrf/host/
-		rm -rf build
-		mkdir -p build
-		cd build
-		cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 -DINSTALL_UDEV_RULES=ON ../ >>$LOGDEV 2>&1
-		make clean >>$LOGDEV 2>&1
-		make >>$LOGDEV 2>&1
-		if [ $? -ne 0 ]
-		then
-			my_echo hackrf build failed
-			my_echo Exiting hackrf build
-			doexit HACKRF-BUILD-FAIL1
-		else
-			sudo make install >>$LOGDEV 2>&1
-		fi
+		my_echo you do not appear to have the \'hackrf\' directory
+		my_echo you should probably use $0 gitfetch to fetch the appropriate
+		my_echo files using GIT
+		doexit BUILD-HACKRF-NOT-THERE
+	fi
+	my_echo -n Building hackrf...
+	cd hackrf/host/
+	rm -rf build
+	mkdir -p build
+	cd build
+	cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 -DINSTALL_UDEV_RULES=ON ../ >>$LOGDEV 2>&1
+	make clean >>$LOGDEV 2>&1
+	make $JFLAG >>$LOGDEV 2>&1
+	if [ $? -ne 0 ]
+	then
+		my_echo hackrf build failed
+		my_echo Exiting hackrf build
+		doexit HACKRF-BUILD-FAIL1
+	else
+		sudo make $JFLAG install >>$LOGDEV 2>&1
 		my_echo Done building hackrf
-		cd "$CWD"
 	fi
+
+
 
 	cd "$CWD"
-	if [ -d gr-iqbal ]
+	if [ ! -d gr-iqbal ]
 	then
-		my_echo -n Building gr-iqbal...
-		cd gr-iqbal
-		rm -rf build
-		mkdir -p build
-		cd build
-		cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 ../ >>$LOGDEV 2>&1
-		make clean >>$LOGDEV 2>&1
-		make >>$LOGDEV 2>&1
-		if [ $? -ne 0 ]
-		then
-			my_echo gr-iqbal build apparently failed
-			my_echo Exiting gr-iqbal build
-			doexit IQBAL-BUILD-FAIL1
-		else
-			sudo make install  >>$LOGDEV 2>&1
-			my_echo Done building gr-iqbal
-			cd "$CWD"
-		fi
+		my_echo you do not appear to have the \'gr-iqbal\' directory
+		my_echo you should probably use $0 gitfetch to fetch the appropriate
+		my_echo files using GIT
+		doexit BUILD-IQBAL-NOT-THERE
+	fi
+	my_echo -n Building gr-iqbal...
+	cd gr-iqbal
+	rm -rf build
+	mkdir -p build
+	cd build
+	cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 ../ >>$LOGDEV 2>&1
+	make clean >>$LOGDEV 2>&1
+	make $JFLAG >>$LOGDEV 2>&1
+	if [ $? -ne 0 ]
+	then
+		my_echo gr-iqbal build apparently failed
+		my_echo Exiting gr-iqbal build
+		doexit IQBAL-BUILD-FAIL1
+	else
+		sudo make $JFLAG install  >>$LOGDEV 2>&1
+		my_echo Done building gr-iqbal
 	fi
 
-	if [ -d bladeRF  ]
+
+
+	cd "$CWD"
+	if [ ! -d bladeRF ]
 	then
-		my_echo -n Building bladeRF...
-		cd bladeRF
-		cd host
-		rm -rf build
-		mkdir -p build
-		cd build
-		cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 ../ >>$LOGDEV 2>&1
-		make clean >>$LOGDEV 2>&1
-		make >>$LOGDEV 2>&1
-		if [ $? -ne 0 ]
-		then
-			my_echo bladeRF build apparently failed
-			my_echo Exiting bladeRF build
-			doexit BLADERF-BUILD-FAIL1
-		else
-			sudo make install >>$LOGDEV 2>&1
-			my_echo Done building bladeRF
-			cd "$CWD"
-		fi
+		my_echo you do not appear to have the \'bladeRF\' directory
+		my_echo you should probably use $0 gitfetch to fetch the appropriate
+		my_echo files using GIT
+		doexit BUILD-BLADERF-NOT-THERE
 	fi
-	
-	if [ -d airspyone_host ]
+	my_echo -n Building bladeRF...
+	cd bladeRF
+	cd host
+	rm -rf build
+	mkdir -p build
+	cd build
+	cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 ../ >>$LOGDEV 2>&1
+	make clean >>$LOGDEV 2>&1
+	make $JFLAG >>$LOGDEV 2>&1
+	if [ $? -ne 0 ]
 	then
-		cd airspyone_host
-		rm -rf build
-		mkdir build
-		cd build
-		cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 -DINSTALL_UDEV_RULES=ON ../ >>$LOGDEV 2>&1
-		make clean >>$LOGDEV 2>&1
-		make >>$LOGDEV 2>&1
-		if [ $? -ne 0 ]
-		then
-			my_echo airspyone_host build apparently failed
-			my_echo Exiting airspyone_host build
-			doexit AIRSPYONE-BUILD-FAIL1
-		else
-			sudo make install >>$LOGDEV 2>&1
-			my_echo Done building airspyone_host
-			cd "$CWD"
-		fi
+		my_echo bladeRF build apparently failed
+		my_echo Exiting bladeRF build
+		doexit BLADERF-BUILD-FAIL1
+	else
+		sudo make $JFLAG install >>$LOGDEV 2>&1
+		my_echo Done building bladeRF
 	fi
-	
+
+
+
+	cd "$CWD"
+	if [ ! -d airspyone_host ]
+	then
+		my_echo you do not appear to have the \'airspyone_host\' directory
+		my_echo you should probably use $0 gitfetch to fetch the appropriate
+		my_echo files using GIT
+		doexit BUILD-AIRSPYONE-NOT-THERE
+	fi
+	cd airspyone_host
+	rm -rf build
+	mkdir build
+	cd build
+	cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 -DINSTALL_UDEV_RULES=ON ../ >>$LOGDEV 2>&1
+	make clean >>$LOGDEV 2>&1
+	make $JFLAG >>$LOGDEV 2>&1
+	if [ $? -ne 0 ]
+	then
+		my_echo airspyone_host build apparently failed
+		my_echo Exiting airspyone_host build
+		doexit AIRSPYONE-BUILD-FAIL1
+	else
+		sudo make $JFLAG install >>$LOGDEV 2>&1
+		my_echo Done building airspyone_host
+	fi
+
+
+
 	cd "$CWD"
 	if [ ! -d gr-osmosdr ]
 	then
 		my_echo you do not appear to have the \'gr-osmosdr\' directory
 		my_echo you should probably use $0 gitfetch to fetch the appropriate
 		my_echo files using GIT
-		doexit RTL-BUILD-FAIL2
+		doexit BUILD-OSMOSDR-NOT-THERE
 	fi
 	cd gr-osmosdr
 	my_echo -n Building gr-osmosdr...
@@ -946,16 +978,18 @@ function rtl_build {
 	cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 ../ >>$LOGDEV  2>&1
 	make clean >>$LOGDEV 2>&1
 	make $JFLAG >>$LOGDEV 2>&1
-	
 	if [ $? -ne 0 ]
 	then
 		my_echo gr-osmosdr build apparently failed
 		my_echo Exit rtl-sdr/gr-osmosdr build
-		doexit OSMOSDR-BUILD-FAIL
+		doexit OSMOSDR-BUILD-FAIL1
+	else
+		sudo make $JFLAG install >>$LOGDEV 2>&1
+		my_echo Done building gr-osmosdr
 	fi
-	sudo make $JFLAG install >>$LOGDEV 2>&1
-	my_echo Done building gr-osmosdr
-	
+
+
+
 	cd "$CWD"
 	sudo ldconfig >>$LOGDEV 2>&1
 	my_echo Done building/installing rtl-sdr, gr-osmosdr, airspyone_host, bladeRF, hackrf, gr-iqbal.
@@ -967,6 +1001,12 @@ function SoapySDR {
 	# SoapySDR build and install
 	#
 	cd "$CWD"
+	if [ ! -d SoapySDR ]
+	then
+		my_echo You do not appear to have the \'SoapySDR\' directory
+		my_echo Fetching SoapySDR via GIT...
+		git clone https://github.com/pothosware/SoapySDR.git >>$LOGDEV 2>&1
+	fi
 	my_echo Building SoapySDR...
 	my_echo "=============> THIS WILL TAKE SOME TIME <============="
 	my_echo
@@ -996,6 +1036,12 @@ function SoapyUHD {
 	# SoapyUHD build and install
 	#
 	cd "$CWD"
+	if [ ! -d SoapyUHD ]
+	then
+		my_echo You do not appear to have the \'SoapyUHD\' directory
+		my_echo Fetching SoapyUHD via GIT...
+		git clone https://github.com/pothosware/SoapyUHD.git >>$LOGDEV 2>&1
+	fi
 	my_echo Building SoapyUHD...
 	my_echo "=============> THIS WILL TAKE SOME TIME <============="
 	my_echo
@@ -1025,6 +1071,15 @@ function LimeSuite {
 	# LimeSuite build and install
 	#
 	cd "$CWD"
+	if [ ! -d LimeSuite ]
+	then
+		my_echo You do not appear to have the \'LimeSuite\' directory
+		my_echo Fetching LimeSuite via GIT...
+		git clone https://github.com/myriadrf/LimeSuite.git >>$LOGDEV 2>&1
+		cd LimeSuite
+		git checkout stable >>$LOGDEV 2>&1
+		cd "$CWD"
+	fi
 	my_echo Building LimeSuite...
 	my_echo "=============> THIS WILL TAKE SOME TIME <============="
 	my_echo
@@ -1418,7 +1473,7 @@ function all {
 		gitfetch
 	fi
 	rm -f touch$$
-	for fcn in uhd_build firmware gnuradio_build rtl_build SoapySDR SoapyUHD LimeSuite G2RFID mod_groups mod_udev mod_sysctl pythonpath setenv extras
+	for fcn in uhd_build firmware gnuradio_build rtl_build SoapySDR SoapyUHD LimeSuite G2RFID mod_groups mod_udev mod_sysctl setenv extras
 	do
 		my_echo Starting function $fcn at: `date`
 		cd "$CWD"
