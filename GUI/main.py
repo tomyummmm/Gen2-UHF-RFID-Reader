@@ -22,11 +22,6 @@ from ui_main import Ui_MainWindow
 # IMPORT FUNCTIONS
 from ui_functions import *
 
-if not exists("projects.db"):
-	print("File projects.db does not exist. Please run initdb.py.")
-	sys.exit()
-
-
 
 class MainWindow(QMainWindow):
 	def __init__(self):
@@ -37,22 +32,49 @@ class MainWindow(QMainWindow):
 		# Connect to SQL database
 		self.db = QSqlDatabase.addDatabase("QSQLITE")
 		self.db.setDatabaseName("projects.db")
+		if not exists("projects.db"):
+			self.db.open()
+			print("File projects.db does not exist. Creating empty table.")
+			query = QSqlQuery()
+			query.exec_("""
+						CREATE TABLE projects
+						(EPC TEXT PRIMARY KEY, Category TEXT, Read_Count INTEGER, Last_Read_From TEXT, First_Seen TEXT, Last_Seen TEXT, Time_Since_Last_Seen INTEGER, Last_RSSI INTEGER, RSSI_Avg INTEGER, RSSI_Max INTEGER, RSSI_Min INTEGER, Power INTEGER, Phase_Angle INTEGER, Doppler_Freq INTEGER)
+						""")
+			query.exec_("""INSERT INTO projects VALUES 
+							('912391239123912391239123', 'Classic', 0, '127.0.0.1', '2022-01-01 12:00:00.001', '2022-01-02 12:00:00.001', 2678400, -50.30, -48.8, -45.2, -54.6, 30.00, NULL, NULL),
+							('845684568456845684568456', 'Class 1', 1, '127.0.0.1', '2022-02-01 3:00:00.001', '2022-02-02 12:00:00.001', 2678400, -50.30, -48.8, -45.2, -54.6, 30.00, NULL, NULL),
+							('789078907890789078907890', '18000-6C', 0, '127.0.0.1', '2022-02-01 5:00:00.001', '2022-02-03 12:00:00.001', 2764800, -50.30, -48.8, -45.2, -54.6, 30.00, NULL, NULL)
+							""")
+			self.db.close()
+
 		self.db.open()
 
 		# Setup QSqlTableModel for easy read / write access to db
 		self.model = QSqlTableModel(self)
 		self.model.setTable("projects")
 		self.model.setEditStrategy(QSqlTableModel.OnFieldChange)
+		# self.model.setEditStrategy(QSqlTableModel.OnManualSubmit)
 		self.model.select()
-		# self.model.setHeaderData(0, Qt.Horizontal, "Manufacturer")
-		# self.model.setHeaderData(1, Qt.Horizontal, "Category")
-		# self.model.setHeaderData(2, Qt.Horizontal, "Product")
-		# self.model.setHeaderData(3, Qt.Horizontal, "UID")
-		# self.model.setHeaderData(4, Qt.Horizontal, "Date & Time")
+		self.model.setHeaderData(0, Qt.Horizontal, "EPC")
+		self.model.setHeaderData(1, Qt.Horizontal, "Category")
+		self.model.setHeaderData(2, Qt.Horizontal, "Read Count")
+		self.model.setHeaderData(3, Qt.Horizontal, "Last Read From")
+		self.model.setHeaderData(4, Qt.Horizontal, "First Seen (Y-M-D H:M:S)")
+		self.model.setHeaderData(5, Qt.Horizontal, "Last Seen")
+		self.model.setHeaderData(6, Qt.Horizontal, "Time Since Last Seen (Sec)")
+		self.model.setHeaderData(7, Qt.Horizontal, "Last RSSI")
+		self.model.setHeaderData(8, Qt.Horizontal, "RSSI Avg")
+		self.model.setHeaderData(9, Qt.Horizontal, "RSSI Max")
+		self.model.setHeaderData(10, Qt.Horizontal, "RSSI Min")
+		self.model.setHeaderData(11, Qt.Horizontal, "Power")
+		self.model.setHeaderData(12, Qt.Horizontal, "Phase Angle")
+		self.model.setHeaderData(13, Qt.Horizontal, "Doppler Frequency")
 
 		# Update tableView as QSqlTableModel
 		self.ui.tableView.setModel(self.model)
 		self.ui.tableView.resizeColumnsToContents()
+		# # Set to stretch EPC column so that entire table stays in view regardless of window size
+		self.ui.tableView.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
 
 		# Setup QSortFilterProxyModel to enable search through QSqlTableModel
 		self.filter_proxy_model = QSortFilterProxyModel()
@@ -104,24 +126,49 @@ class MainWindow(QMainWindow):
 		return super().closeEvent(event)
 
 	def ZMQ_simulation(self):
-		self.ui.line_Manfacturer.setText('EPCglobal')
-		self.ui.line_Category.setText('Class 1 Gen 2')
-		self.ui.line_Product.setText('Tag')
-		self.ui.line_UID.setText('189256')
-		datetime = QDateTime.currentDateTime()
-		self.ui.line_Datetime.setText(datetime.toString('d.M.yy hh:mm:ss AP'))
-
 		# Append new data to table
-		self.rec = self.model.record()
-		# Update each field's record
-		data = [self.ui.line_Manfacturer.text(), self.ui.line_Category.text(), \
-			self.ui.line_Product.text(), int(self.ui.line_UID.text()), self.ui.line_Datetime.text()]
-		for i in range(5):
-			self.rec.setValue(self.rec.field(i).name(), data[i])
-		self.model.insertRecord(-1, self.rec)
+		query = QSqlQuery()
+
+		# EPC TEXT PRIMARY KEY
+		# Category TEXT
+		# Read_Count INTEGER
+		# Last_Read_From TEXT
+		# First_Seen TEXT
+		# Last_Seen TEXT
+		# Time_Since_Last_Seen INTEGER
+		# Last_RSSI INTEGER
+		# RSSI_Avg INTEGER
+		# RSSI_Max INTEGER
+		# RSSI_Min INTEGER
+		# Power INTEGER
+		# Phase_Angle INTEGER
+		# Doppler_Freq INTEGER
+		# Using SQL UPSERT (https://www.sqlite.org/lang_UPSERT.html). Special syntax addition to INSERT that causes the INSERT to behave as an UPDATE or a no-op if the INSERT would violate a uniqueness constraint. UPSERT is not standard SQL.
+		query.exec_("""INSERT INTO projects (EPC, Category, Read_Count, Last_Read_From, First_Seen, Last_Seen, Time_Since_Last_Seen, Last_RSSI, RSSI_Avg, RSSI_Max, RSSI_Min, Power, Phase_Angle, Doppler_Freq)
+					VALUES('912391239123912391239123', 'Classic', 0, '127.0.0.1', '2022-01-01 12:00:00.001', '2022-01-02 12:00:00.001', 2678400, -50.30, -48.8, -45.2, -54.6, 30.00, NULL, NULL)
+					ON CONFLICT (EPC) DO
+					UPDATE SET Read_Count=Read_count+1,
+					Time_Since_Last_Seen=(julianday('now') - julianday(Last_Seen)) * 86400,
+					Last_Seen=strftime('%Y-%m-%d %H:%M:%f', 'now')
+					""")
+		self.model.select()
+		# self.model.submitAll()
+
+		# self.db.exec_("""INSERT INTO projects (EPC, Category, Read_Count, Last_Read_From, First_Seen, Last_Seen, Time_Since_Last_Seen, Last_RSSI, RSSI_Avg, RSSI_Max, RSSI_Min, Power, Phase_Angle, Doppler_Freq)
+		# 			VALUES('912391239123912391239123', 'Classic', 0, '127.0.0.1', '2022-01-01 12:00:00.001', '2022-01-02 12:00:00.001', 2678400, -50.30, -48.8, -45.2, -54.6, 30.00, NULL, NULL)
+		# 			ON CONFLICT (EPC) DO UPDATE SET 
+		# 			Read_Count=Read_count+1,
+		# 			Time_Since_Last_Seen=strftime('%Y-%m-%d %H:%M:%f', 'now') - strftime('%Y-%m-%d %H:%M:%f', Last_Seen),
+		# 			Last_Seen=strftime('%Y-%m-%d %H:%M:%f', 'now')
+		# 			""")
+		# self.model.submitAll()
+
 
 	def DeleteRow(self):
 		self.model.removeRow(self.ui.tableView.currentIndex().row())
+		self.model.select()
+		# self.model.submitAll()
+
 
 if __name__ == "__main__":
 	app = QApplication(sys.argv)
