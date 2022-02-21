@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def load_bin_file(samplerate=2e6, type="complex", bfile="../data/file_source_test", plot=False, start_us=0, end_us=0):
+def load_bin_file(samplerate=2e6, type="complex", bfile="../data/source", plot=False, start_us=0, end_us=0):
     if type not in ["complex", "real"]:
         print("data type must be complex or real.")
         exit()
@@ -24,4 +24,4 @@ def load_bin_file(samplerate=2e6, type="complex", bfile="../data/file_source_tes
     return data
 
 if __name__ == "__main__":
-    data = load_bin_file(plot=True, start_us=26000, end_us=43000)
+    data = load_bin_file(plot=True, start_us=000, end_us=100000)
