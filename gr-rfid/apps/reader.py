@@ -25,7 +25,7 @@ class reader_top_block(gr.top_block):
     self.source.set_samp_rate(self.adc_rate)
     self.source.set_center_freq(self.freq, 0)
     self.source.set_gain(self.rx_gain, 0)
-    self.source.set_antenna("RX2", 0)
+    self.source.set_antenna("LNAL", 0) # connect antenna to RX_L for lime USB
     #self.source.set_auto_dc_offset(False) # Uncomment this line for SBX daughterboard
 
   # Configure usrp sink
@@ -40,7 +40,7 @@ class reader_top_block(gr.top_block):
     self.sink.set_samp_rate(self.dac_rate)
     self.sink.set_center_freq(self.freq, 0)
     self.sink.set_gain(self.tx_gain, 0)
-    self.sink.set_antenna("TX/RX", 0)
+    self.sink.set_antenna("BAND1", 0) # connect antenna to tx1 for lime USB
     
   def __init__(self):
     gr.top_block.__init__(self)
@@ -55,7 +55,7 @@ class reader_top_block(gr.top_block):
     self.ampl     = 0.1                  # Output signal amplitude (signal power vary for different RFX900 cards)
     self.freq     = 910e6                # Modulation frequency (can be set between 902-920)
     self.rx_gain   = 20                   # RX Gain (gain at receiver)
-    self.tx_gain   = 0                    # RFX900 no Tx gain option
+    self.tx_gain   = 50                    # RFX900 no Tx gain option
 
     self.usrp_address_source = "addr=192.168.10.2,recv_frame_size=256"
     self.usrp_address_sink   = "addr=192.168.10.2,recv_frame_size=256"
