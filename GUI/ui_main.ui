@@ -453,7 +453,14 @@ border-radius: 2px;</string>
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
             </property>
             <property name="placeholderText">
-             <string>IP Address</string>
+             <string>IPv4 Address</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="host_ip_label">
+            <property name="text">
+             <string>Host IP Address:</string>
             </property>
            </widget>
           </item>

@@ -232,6 +232,11 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_2.addWidget(self.lineEdit_ip)
 
+        self.host_ip_label = QLabel(self.credits_bar)
+        self.host_ip_label.setObjectName(u"host_ip_label")
+
+        self.horizontalLayout_2.addWidget(self.host_ip_label)
+
         self.frame_grip = QFrame(self.credits_bar)
         self.frame_grip.setObjectName(u"frame_grip")
         self.frame_grip.setMinimumSize(QSize(30, 30))
@@ -281,6 +286,7 @@ class Ui_MainWindow(object):
 #if QT_CONFIG(tooltip)
         self.lineEdit_ip.setToolTip(QCoreApplication.translate("MainWindow", u"Press Enter / Return key after editing", None))
 #endif // QT_CONFIG(tooltip)
-        self.lineEdit_ip.setPlaceholderText(QCoreApplication.translate("MainWindow", u"IP Address", None))
+        self.lineEdit_ip.setPlaceholderText(QCoreApplication.translate("MainWindow", u"IPv4 Address", None))
+        self.host_ip_label.setText(QCoreApplication.translate("MainWindow", u"Host IP Address:", None))
     # retranslateUi
 
