@@ -305,7 +305,7 @@ QPushButton:hover {
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_9">
                 <item>
-                 <widget class="QPushButton" name="simulate_ZMQ">
+                 <widget class="QPushButton" name="start_stop_btn">
                   <property name="font">
                    <font>
                     <pointsize>10</pointsize>
@@ -318,7 +318,13 @@ QPushButton:hover {
                    <string notr="true">background-color: yellow</string>
                   </property>
                   <property name="text">
-                   <string>Simulate ZMQ data</string>
+                   <string>Start</string>
+                  </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
+                  <property name="default">
+                   <bool>false</bool>
                   </property>
                  </widget>
                 </item>
@@ -383,7 +389,7 @@ QPushButton:hover {
                </layout>
                <zorder>tableView</zorder>
                <zorder>search_db</zorder>
-               <zorder>simulate_ZMQ</zorder>
+               <zorder>start_stop_btn</zorder>
                <zorder>remove_row</zorder>
               </widget>
              </item>
@@ -502,7 +508,7 @@ border-radius: 2px;</string>
   <tabstop>btn_minimize</tabstop>
   <tabstop>btn_maximize</tabstop>
   <tabstop>btn_close</tabstop>
-  <tabstop>simulate_ZMQ</tabstop>
+  <tabstop>start_stop_btn</tabstop>
   <tabstop>search_db</tabstop>
   <tabstop>tableView</tabstop>
  </tabstops>

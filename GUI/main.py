@@ -121,11 +121,8 @@ class MainWindow(QMainWindow):
 		self.ui.tableView.setModel(self.filter_proxy_model)
 
 
-		# Setup ZMQ listener workers with QThread
-		self.ZMQ_Thread()
-
-		# Trigger ZMQ Simulation
-		self.ui.simulate_ZMQ.clicked.connect(self.ZMQ_simulation)
+		# Start / Stop program
+		self.ui.start_stop_btn.clicked.connect(self.program_status)
 
 		# Trigger db row removal
 		self.ui.remove_row.clicked.connect(self.DeleteRow)
@@ -164,13 +161,28 @@ class MainWindow(QMainWindow):
 	def mousePressEvent(self, event):
 		self.dragPos = event.globalPos()
 
-	# def closeEvent(self, event: PySide2.QtGui.QCloseEvent) -> None:
 	def closeEvent(self, event):
+		if not self.thread.isFinished():
+			self.zeromq_listener.running = False
+			self.thread.quit()
+			self.thread.wait()
 		self.db.close()
-		self.zeromq_listener.running = False
-		self.thread.quit()
-		self.thread.wait()
 		return super().closeEvent(event)
+
+	def program_status(self):
+		if self.ui.start_stop_btn.isChecked():
+			self.ui.start_stop_btn.setStyleSheet("background-color: red")
+			self.ui.start_stop_btn.setText("Stop")
+			# Setup ZMQ listener workers with QThread
+			self.ZMQ_Thread()
+		else:
+			self.ui.start_stop_btn.setStyleSheet("background-color: yellow")
+			self.ui.start_stop_btn.setText("Start")
+			self.zeromq_listener.running = False
+			# self.thread.quit()
+			# self.thread.wait()
+			# if self.thread.isFinished():
+			# 	print("Thread Status: Finished")
 
 	def ZMQ_Thread(self):
 		# Setup ZMQ listener workers with QThread

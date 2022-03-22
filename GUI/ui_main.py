@@ -151,15 +151,16 @@ class Ui_MainWindow(object):
         self.frame_content_home.setFrameShadow(QFrame.Raised)
         self.verticalLayout_9 = QVBoxLayout(self.frame_content_home)
         self.verticalLayout_9.setObjectName(u"verticalLayout_9")
-        self.simulate_ZMQ = QPushButton(self.frame_content_home)
-        self.simulate_ZMQ.setObjectName(u"simulate_ZMQ")
+        self.start_stop_btn = QPushButton(self.frame_content_home)
+        self.start_stop_btn.setObjectName(u"start_stop_btn")
         font2 = QFont()
         font2.setPointSize(10)
-        self.simulate_ZMQ.setFont(font2)
-        self.simulate_ZMQ.setAutoFillBackground(False)
-        self.simulate_ZMQ.setStyleSheet(u"background-color: yellow")
+        self.start_stop_btn.setFont(font2)
+        self.start_stop_btn.setAutoFillBackground(False)
+        self.start_stop_btn.setStyleSheet(u"background-color: yellow")
+        self.start_stop_btn.setCheckable(True)
 
-        self.verticalLayout_9.addWidget(self.simulate_ZMQ)
+        self.verticalLayout_9.addWidget(self.start_stop_btn)
 
         self.search_db = QLineEdit(self.frame_content_home)
         self.search_db.setObjectName(u"search_db")
@@ -196,7 +197,7 @@ class Ui_MainWindow(object):
 
         self.tableView.raise_()
         self.search_db.raise_()
-        self.simulate_ZMQ.raise_()
+        self.start_stop_btn.raise_()
         self.remove_row.raise_()
 
         self.verticalLayout_5.addWidget(self.frame_content_home)
@@ -256,11 +257,14 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
         QWidget.setTabOrder(self.btn_minimize, self.btn_maximize)
         QWidget.setTabOrder(self.btn_maximize, self.btn_close)
-        QWidget.setTabOrder(self.btn_close, self.simulate_ZMQ)
-        QWidget.setTabOrder(self.simulate_ZMQ, self.search_db)
+        QWidget.setTabOrder(self.btn_close, self.start_stop_btn)
+        QWidget.setTabOrder(self.start_stop_btn, self.search_db)
         QWidget.setTabOrder(self.search_db, self.tableView)
 
         self.retranslateUi(MainWindow)
+
+        self.start_stop_btn.setDefault(False)
+
 
         QMetaObject.connectSlotsByName(MainWindow)
     # setupUi
@@ -280,7 +284,7 @@ class Ui_MainWindow(object):
         self.btn_close.setToolTip(QCoreApplication.translate("MainWindow", u"Close", None))
 #endif // QT_CONFIG(tooltip)
         self.btn_close.setText("")
-        self.simulate_ZMQ.setText(QCoreApplication.translate("MainWindow", u"Simulate ZMQ data", None))
+        self.start_stop_btn.setText(QCoreApplication.translate("MainWindow", u"Start", None))
         self.search_db.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Search", None))
         self.remove_row.setText(QCoreApplication.translate("MainWindow", u"Remove Row", None))
 #if QT_CONFIG(tooltip)
