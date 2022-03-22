@@ -315,7 +315,7 @@ QPushButton:hover {
                    <bool>false</bool>
                   </property>
                   <property name="styleSheet">
-                   <string notr="true">background-color: yellow</string>
+                   <string notr="true">background-color: rgb(0, 255, 0);</string>
                   </property>
                   <property name="text">
                    <string>Start</string>
@@ -459,7 +459,7 @@ border-radius: 2px;</string>
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
             </property>
             <property name="placeholderText">
-             <string>IPv4 Address</string>
+             <string>IPv4 Address, defaults to localhost 127.0.0.1 when empty.</string>
             </property>
            </widget>
           </item>

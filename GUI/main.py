@@ -6,7 +6,7 @@
 ##
 ################################################################################
 
-import sys, socket, zmq, platform
+import sys, socket, zmq, platform, time
 from datetime import datetime
 # from PySide2.QtGui import (QBrush, QColor, QConicalGradient, QCursor, QFont, QFontDatabase, QIcon, QKeySequence, QLinearGradient, QPalette, QPainter, QPixmap, QRadialGradient)
 from PySide2.QtCore import (Qt, QSortFilterProxyModel, QSettings, QThread, Signal, QObject, QCoreApplication, QPropertyAnimation, QDate, QDateTime, QMetaObject,  QPoint, QRect, QSize, QTime, QUrl, QEvent)
@@ -31,30 +31,51 @@ class ZeroMQ_Listener(QObject):
 		self.socket = context.socket(zmq.SUB)
 
 		self.setting_ip = QSettings('GUI Database', 'IP Address')
-		if self.setting_ip.value('IP_Address') == None:
-			tcp_str = 'tcp://127.0.0.1:5556'
-		else:
+		if self.setting_ip.value('IP_Address') != None:
 			tcp_str = 'tcp://' + self.setting_ip.value('IP_Address') + ':5556'
+		else:
+			tcp_str = 'tcp://127.0.0.1:5556'
 		print('Connecting to IP Address: ' + tcp_str)
 		self.socket.connect(tcp_str)
 
 		# Subscribe to topic
 		self.socket.setsockopt(zmq.SUBSCRIBE, b'')  # subscribe to topic of all
 		
-		self.running = True
+		self.is_running = False
+		self.is_killed = False
+
+	def pause(self):
+		self.is_running = False
+		
+	def resume(self):
+		self.is_running = True
+		
+	def kill(self):
+		self.is_killed = True
 
 	def loop(self):
-		while self.running:
-			event = self.socket.poll(timeout=1000) # Poll socket for event, wait 1 second for timeout.
-			if event == 0:
-				pass
-			else:
-				EPC, RSSI = self.socket.recv_multipart()
-				EPC = EPC.decode('utf-8')
-				RSSI = float(RSSI.decode('utf-8'))
-				# print(EPC, RSSI)
-				self.data.emit(EPC, RSSI)
-		self.finished.emit()
+		while True:
+			# Receive ZMQ data
+			while self.is_running:
+				event = self.socket.poll(timeout=1000) # Poll socket for event, wait 1 second for timeout.
+				if event == 0:
+					pass
+				else:
+					EPC, RSSI = self.socket.recv_multipart()
+					EPC = EPC.decode('utf-8')
+					RSSI = float(RSSI.decode('utf-8'))
+					# print(EPC, RSSI)
+					self.data.emit(EPC, RSSI)
+			
+			# Sleep when paused
+			time.sleep(0.1)
+			print('sleep')
+			
+			# Exit when killed
+			if self.is_killed:
+				break
+		
+		# self.finished.emit()
 
 class MainWindow(QMainWindow):
 	def __init__(self):
@@ -120,7 +141,6 @@ class MainWindow(QMainWindow):
 		self.ui.search_db.textChanged.connect(self.filter_proxy_model.setFilterRegExp)
 		self.ui.tableView.setModel(self.filter_proxy_model)
 
-
 		# Start / Stop program
 		self.ui.start_stop_btn.clicked.connect(self.program_status)
 
@@ -132,6 +152,9 @@ class MainWindow(QMainWindow):
 		
 		# Trigger IP Address change after edit
 		self.ui.lineEdit_ip.editingFinished.connect(self.Edit_IP)
+
+		# Setup ZMQ listener workers with QThread
+		self.ZMQ_Thread()
 
 		# MOVE WINDOW
 		def moveWindow(event):
@@ -163,7 +186,8 @@ class MainWindow(QMainWindow):
 
 	def closeEvent(self, event):
 		if not self.thread.isFinished():
-			self.zeromq_listener.running = False
+			self.zeromq_listener.is_running = False
+			self.zeromq_listener.is_killed = True
 			self.thread.quit()
 			self.thread.wait()
 		self.db.close()
@@ -173,12 +197,11 @@ class MainWindow(QMainWindow):
 		if self.ui.start_stop_btn.isChecked():
 			self.ui.start_stop_btn.setStyleSheet("background-color: red")
 			self.ui.start_stop_btn.setText("Stop")
-			# Setup ZMQ listener workers with QThread
-			self.ZMQ_Thread()
+			self.zeromq_listener.is_running = True
 		else:
 			self.ui.start_stop_btn.setStyleSheet("background-color: yellow")
 			self.ui.start_stop_btn.setText("Start")
-			self.zeromq_listener.running = False
+			self.zeromq_listener.is_running = False
 			# self.thread.quit()
 			# self.thread.wait()
 			# if self.thread.isFinished():
@@ -193,9 +216,9 @@ class MainWindow(QMainWindow):
 		# Connect signals and slots
 		self.thread.started.connect(self.zeromq_listener.loop)
 		self.zeromq_listener.data.connect(self.ZMQ_simulation) # Connect data from thread to function in main
-		self.zeromq_listener.finished.connect(self.thread.quit)
-		self.zeromq_listener.finished.connect(self.zeromq_listener.deleteLater)
-		self.thread.finished.connect(self.thread.deleteLater)
+		# self.zeromq_listener.finished.connect(self.thread.quit)
+		# self.zeromq_listener.finished.connect(self.zeromq_listener.deleteLater)
+		# self.thread.finished.connect(self.thread.deleteLater)
 
 		# Start thread
 		self.thread.start()
@@ -260,7 +283,7 @@ class MainWindow(QMainWindow):
 
 		query.exec_()
 		self.model.select()
-		# self.model.submitAll()
+
 
 	def DeleteRow(self):
 		self.model.removeRow(self.ui.tableView.currentIndex().row())
@@ -269,28 +292,34 @@ class MainWindow(QMainWindow):
 
 	def Edit_IP(self):
 		error = 0
-		# check for valid IPv4 Address, check 4 sub-fields, int range 0 to 255 (8 bits).
-		ip_split = self.ui.lineEdit_ip.text().split('.')
-		if len(ip_split) != 4:
-			error = 1
-		for i in ip_split:
-			if i.isdigit() and int(i) <= 255 and int(i) >= 0:
-				pass
-			else:
-				error = 1
-				break
-		if error == 1:
-			error_dialog = QMessageBox()
-			error_dialog.setIcon(QMessageBox.Critical)
-			error_dialog.setText("Invalid IPv4 Address")
-			error_dialog.setInformativeText('IP Address must follow IPv4 standards, 4 sub-fields, 0-255 values')
-			error_dialog.setWindowTitle("Error")
-			# error_dialog.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
-			error_dialog.exec_()
-			self.ui.lineEdit_ip.clear()
 
-		# Set Value of QSettings 'IP_address'
-		self.setting_ip.setValue('IP_address', self.ui.lineEdit_ip.text())
+		# Set to localhost 127.0.0.1 if empty, to prevent app from not starting up if no previous IP address entered in QSettings.
+		if self.ui.lineEdit_ip.text() == '':
+			self.setting_ip.setValue('IP_address', '127.0.0.1')
+		else:
+			# check for valid IPv4 Address, check 4 sub-fields, int range 0 to 255 (8 bits).
+			ip_split = self.ui.lineEdit_ip.text().split('.')
+			if len(ip_split) != 4:
+				error = 1
+			for i in ip_split:
+				if i.isdigit() and int(i) <= 255 and int(i) >= 0:
+					pass
+				else:
+					error = 1
+					break
+			if error == 1:
+				error_dialog = QMessageBox()
+				error_dialog.setIcon(QMessageBox.Critical)
+				error_dialog.setText("Invalid IPv4 Address")
+				error_dialog.setInformativeText('IP Address must follow IPv4 standards, 4 sub-fields, 0-255 values')
+				error_dialog.setWindowTitle("Error")
+				# error_dialog.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+				error_dialog.exec_()
+				self.ui.lineEdit_ip.clear()
+				self.setting_ip.setValue('IP_address', '127.0.0.1')
+			else:
+				# Set Value of QSettings 'IP_address'
+				self.setting_ip.setValue('IP_address', self.ui.lineEdit_ip.text())
 
 		# Restart thread to rebind IP Address in PyZMQ
 		self.zeromq_listener.running = False
@@ -304,7 +333,13 @@ class MainWindow(QMainWindow):
 
 	def getSettingsValues(self):
 		self.setting_ip = QSettings('GUI Database', 'IP Address')
-		self.ui.lineEdit_ip.setText(self.setting_ip.value('IP_Address'))
+		# If setup for first time, set as localhost, else load from settings
+		if self.setting_ip.value('IP_Address') == '' or self.setting_ip.value('IP_Address') == None:
+			self.setting_ip.setValue('IP_address', '127.0.0.1')
+		elif self.setting_ip.value('IP_Address') == '127.0.0.1':
+			self.ui.lineEdit_ip.clear()
+		else:
+			self.ui.lineEdit_ip.setText(self.setting_ip.value('IP_Address'))
 
 		# self.setting_window = QSettings('GUI Database', 'Window Size')
 

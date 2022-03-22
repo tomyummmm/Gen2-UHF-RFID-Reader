@@ -157,7 +157,7 @@ class Ui_MainWindow(object):
         font2.setPointSize(10)
         self.start_stop_btn.setFont(font2)
         self.start_stop_btn.setAutoFillBackground(False)
-        self.start_stop_btn.setStyleSheet(u"background-color: yellow")
+        self.start_stop_btn.setStyleSheet(u"background-color: rgb(0, 255, 0);")
         self.start_stop_btn.setCheckable(True)
 
         self.verticalLayout_9.addWidget(self.start_stop_btn)
@@ -290,7 +290,7 @@ class Ui_MainWindow(object):
 #if QT_CONFIG(tooltip)
         self.lineEdit_ip.setToolTip(QCoreApplication.translate("MainWindow", u"Press Enter / Return key after editing", None))
 #endif // QT_CONFIG(tooltip)
-        self.lineEdit_ip.setPlaceholderText(QCoreApplication.translate("MainWindow", u"IPv4 Address", None))
+        self.lineEdit_ip.setPlaceholderText(QCoreApplication.translate("MainWindow", u"IPv4 Address, defaults to localhost 127.0.0.1 when empty.", None))
         self.host_ip_label.setText(QCoreApplication.translate("MainWindow", u"Host IP Address:", None))
     # retranslateUi
 

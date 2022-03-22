@@ -22,4 +22,4 @@ while True:
 	RSSI = str(round(random.uniform(-35,-50), 3))
 	socket.send_multipart([bytes(EPC, 'utf-8'), bytes(RSSI, 'utf-8')])
 	print('Sent')
-	time.sleep(0.01)
+	time.sleep(0.05)
