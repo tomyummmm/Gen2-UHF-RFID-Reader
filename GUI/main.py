@@ -13,6 +13,7 @@ from PySide2.QtCore import (Qt, QSortFilterProxyModel, QSettings, QThread, Signa
 from PySide2.QtWidgets import *
 from PySide2.QtSql import *
 from os.path import exists
+from collections import deque
 
 
 # GUI FILE
@@ -23,9 +24,9 @@ from ui_functions import *
 
 class ZeroMQ_Listener(QObject):
 	finished = Signal()
-	data = Signal(str, float)
+	data = Signal()
 	
-	def __init__(self):
+	def __init__(self, queue):
 		QObject.__init__(self)
 		context = zmq.Context()
 		self.socket = context.socket(zmq.SUB)
@@ -44,6 +45,8 @@ class ZeroMQ_Listener(QObject):
 		self.is_running = False
 		self.is_killed = False
 
+		self.in_queue = queue
+
 	def pause(self):
 		self.is_running = False
 		
@@ -54,6 +57,8 @@ class ZeroMQ_Listener(QObject):
 		self.is_killed = True
 
 	def loop(self):
+		# Check current thread ID
+		# print(str(QThread.currentThread()))
 		while True:
 			# Receive ZMQ data
 			while self.is_running:
@@ -65,7 +70,10 @@ class ZeroMQ_Listener(QObject):
 					EPC = EPC.decode('utf-8')
 					RSSI = float(RSSI.decode('utf-8'))
 					# print(EPC, RSSI)
-					self.data.emit(EPC, RSSI)
+					self.in_queue.append((EPC, RSSI))
+					self.data.emit()
+					# print(self.in_queue)
+					
 			
 			# Sleep when paused
 			time.sleep(0.1)
@@ -103,6 +111,13 @@ class MainWindow(QMainWindow):
 
 		# Check host IP Address and set text in host_ip_label.
 		self.get_hostip()
+		
+		# Check current thread ID
+		# print(str(QThread.currentThread()))
+
+		# Setup deque so that can exit after ensuring all data is written, emit(data) no way to check if all written?
+		# Exits with some SQL queries not executed after closing db.
+		self.queue = deque()
 
 		# Setup QSqlTableModel for easy read / write access to db
 		self.model = QSqlTableModel(self)
@@ -185,11 +200,16 @@ class MainWindow(QMainWindow):
 		self.dragPos = event.globalPos()
 
 	def closeEvent(self, event):
-		if not self.thread.isFinished():
-			self.zeromq_listener.is_running = False
-			self.zeromq_listener.is_killed = True
-			self.thread.quit()
-			self.thread.wait()
+		self.zeromq_listener.is_running = False
+		self.zeromq_listener.is_killed = True
+		self.thread.quit()
+		self.thread.wait()
+		if self.thread.isFinished():
+			print("Thread Status: Finished")
+		# Ensure deque is cleared
+		while self.queue:
+			self.ZMQ_simulation()
+		print(self.queue)
 		self.db.close()
 		return super().closeEvent(event)
 
@@ -210,7 +230,7 @@ class MainWindow(QMainWindow):
 	def ZMQ_Thread(self):
 		# Setup ZMQ listener workers with QThread
 		self.thread = QThread()
-		self.zeromq_listener = ZeroMQ_Listener()
+		self.zeromq_listener = ZeroMQ_Listener(self.queue)
 		self.zeromq_listener.moveToThread(self.thread)
 		
 		# Connect signals and slots
@@ -223,66 +243,67 @@ class MainWindow(QMainWindow):
 		# Start thread
 		self.thread.start()
 
-	def ZMQ_simulation(self, EPC, RSSI):
-		# Append new data to table
-		query = QSqlQuery()
-		# EPC = '845684568456845684568456'
-		# RSSI = -51.00
+	def ZMQ_simulation(self):
+		if self.queue:
+			EPC, RSSI = self.queue.popleft()
+			# print(self.queue)
+			# Append new data to table
+			query = QSqlQuery()
 
-		# EPC TEXT PRIMARY KEY
-		# Category TEXT
-		# Read_Count INTEGER
-		# Last_Read_From TEXT
-		# First_Seen TEXT
-		# Last_Seen TEXT
-		# Time_Since_Last_Seen DECIMAL(9,3)
-		# Last_RSSI DECIMAL(6,2)
-		# RSSI_Avg DECIMAL(6,2)
-		# RSSI_Max DECIMAL(6,2)
-		# RSSI_Min DECIMAL(6,2)
-		# Power DECIMAL(6,2)
-		# Phase_Angle DECIMAL(6,2)
-		# Doppler_Freq DECIMAL(6,2)
-		# '912391239123912391239123', 'Classic', 0, '127.0.0.1', '2022-01-01 12:00:00.001', '2022-01-02 12:00:00.001', 2678400, -50.30, -48.8, -45.2, -54.6, 30.00, NULL, NULL
+			# EPC TEXT PRIMARY KEY
+			# Category TEXT
+			# Read_Count INTEGER
+			# Last_Read_From TEXT
+			# First_Seen TEXT
+			# Last_Seen TEXT
+			# Time_Since_Last_Seen DECIMAL(9,3)
+			# Last_RSSI DECIMAL(6,2)
+			# RSSI_Avg DECIMAL(6,2)
+			# RSSI_Max DECIMAL(6,2)
+			# RSSI_Min DECIMAL(6,2)
+			# Power DECIMAL(6,2)
+			# Phase_Angle DECIMAL(6,2)
+			# Doppler_Freq DECIMAL(6,2)
+			# '912391239123912391239123', 'Classic', 0, '127.0.0.1', '2022-01-01 12:00:00.001', '2022-01-02 12:00:00.001', 2678400, -50.30, -48.8, -45.2, -54.6, 30.00, NULL, NULL
 
-		# Using SQL UPSERT (https://www.sqlite.org/lang_UPSERT.html). Special syntax addition to INSERT that causes the INSERT to behave as an UPDATE or a no-op if the INSERT would violate a uniqueness constraint. UPSERT is not standard SQL.
-		query.prepare("""INSERT INTO projects (EPC, Category, Read_Count, Last_Read_From, First_Seen, Last_Seen, Time_Since_Last_Seen, Last_RSSI, RSSI_Avg, RSSI_Max, RSSI_Min, Power, Phase_Angle, Doppler_Freq)
-					VALUES(:EPC, :Category, 1, :Last_Read_From, :First_Seen, :Last_Seen, :Time_Since_Last_Seen, :Last_RSSI, :RSSI_Avg, :RSSI_Max, :RSSI_Min, :Power, :Phase_Angle, :Doppler_Freq)
-					ON CONFLICT (EPC) DO
-					UPDATE SET Read_Count = Read_count + 1,
-					Time_Since_Last_Seen = (julianday('now') - julianday(Last_Seen)) * 86400,
-					Last_Seen = strftime('%Y-%m-%d %H:%M:%f', 'now'),
-					Last_Read_From = :Last_Read_From,
-					Last_RSSI = :Last_RSSI,
-					RSSI_Avg = (RSSI_Avg * (Read_Count - 1) + :Last_RSSI) / Read_Count,
-					RSSI_Max = MAX(RSSI_Max, :Last_RSSI),
-					RSSI_Min = MIN(RSSI_Min, :Last_RSSI),
-					Power = :Power,
-					Phase_Angle = :Phase_Angle,
-					Doppler_Freq = :Doppler_Freq
-					""")
+			# Using SQL UPSERT (https://www.sqlite.org/lang_UPSERT.html). Special syntax addition to INSERT that causes the INSERT to behave as an UPDATE or a no-op if the INSERT would violate a uniqueness constraint. UPSERT is not standard SQL.
+			query.prepare("""INSERT INTO projects (EPC, Category, Read_Count, Last_Read_From, First_Seen, Last_Seen, Time_Since_Last_Seen, Last_RSSI, RSSI_Avg, RSSI_Max, RSSI_Min, Power, Phase_Angle, Doppler_Freq)
+						VALUES(:EPC, :Category, 1, :Last_Read_From, :First_Seen, :Last_Seen, :Time_Since_Last_Seen, :Last_RSSI, :RSSI_Avg, :RSSI_Max, :RSSI_Min, :Power, :Phase_Angle, :Doppler_Freq)
+						ON CONFLICT (EPC) DO
+						UPDATE SET Read_Count = Read_count + 1,
+						Time_Since_Last_Seen = (julianday('now') - julianday(Last_Seen)) * 86400,
+						Last_Seen = strftime('%Y-%m-%d %H:%M:%f', 'now'),
+						Last_Read_From = :Last_Read_From,
+						Last_RSSI = :Last_RSSI,
+						RSSI_Avg = (RSSI_Avg * (Read_Count - 1) + :Last_RSSI) / Read_Count,
+						RSSI_Max = MAX(RSSI_Max, :Last_RSSI),
+						RSSI_Min = MIN(RSSI_Min, :Last_RSSI),
+						Power = :Power,
+						Phase_Angle = :Phase_Angle,
+						Doppler_Freq = :Doppler_Freq
+						""")
 
-		# Substitute named bindings in prepared SQL query, prepare because cannot execute directly with string literal.
-		First_Seen = datetime.today().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3] # Drop last 3 digits of microseconds to match SQL precision of 3 digit milliseconds.
-		query.bindValue(":EPC", EPC)
-		query.bindValue(":Category", 'Class 1')
-		query.bindValue(":Last_Read_From", self.ui.lineEdit_ip.text())
-		query.bindValue(":First_Seen", First_Seen)
-		query.bindValue(":Last_Seen", First_Seen)
-		query.bindValue(":Time_Since_Last_Seen", 0.00)
-		query.bindValue(":Last_RSSI", RSSI)
-		query.bindValue(":RSSI_Avg", RSSI)
-		query.bindValue(":RSSI_Max", RSSI)
-		query.bindValue(":RSSI_Min", RSSI)
-		query.bindValue(":Power", 30.00)
-		query.bindValue(":Phase_Angle", None)
-		query.bindValue(":Doppler_Freq", None)
+			# Substitute named bindings in prepared SQL query, prepare because cannot execute directly with string literal.
+			First_Seen = datetime.today().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3] # Drop last 3 digits of microseconds to match SQL precision of 3 digit milliseconds.
+			query.bindValue(":EPC", EPC)
+			query.bindValue(":Category", 'Class 1')
+			query.bindValue(":Last_Read_From", self.ui.lineEdit_ip.text())
+			query.bindValue(":First_Seen", First_Seen)
+			query.bindValue(":Last_Seen", First_Seen)
+			query.bindValue(":Time_Since_Last_Seen", 0.00)
+			query.bindValue(":Last_RSSI", RSSI)
+			query.bindValue(":RSSI_Avg", RSSI)
+			query.bindValue(":RSSI_Max", RSSI)
+			query.bindValue(":RSSI_Min", RSSI)
+			query.bindValue(":Power", 30.00)
+			query.bindValue(":Phase_Angle", None)
+			query.bindValue(":Doppler_Freq", None)
 
-		# Substitute positional bind value to ? for Last_Read_From, prepare because cannot execute directly with string literal.
-		# query.addBindValue(self.ui.lineEdit_ip.text())
+			# Substitute positional bind value to ? for Last_Read_From, prepare because cannot execute directly with string literal.
+			# query.addBindValue(self.ui.lineEdit_ip.text())
 
-		query.exec_()
-		self.model.select()
+			query.exec_()
+			self.model.select()
 
 
 	def DeleteRow(self):
