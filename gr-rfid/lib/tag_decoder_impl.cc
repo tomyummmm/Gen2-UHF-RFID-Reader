@@ -345,14 +345,14 @@ namespace gr {
             
             for(int bit=0; bit<EPC_bits.size(); bit++)
 	    {
-		    out_2[written] = EPC_bits[bit];
-		    written ++;
+		    out_2[written_sync] = EPC_bits[bit];
+		    written_sync++;
             }
 
-	    produce(1, written);
+	    produce(1, written_sync);
 
             reader_state->reader_stats.n_epc_correct+=1;
-
+            
             int result = 0;
             for(int i = 0 ; i < 8 ; ++i)
             {
