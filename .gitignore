@@ -10,3 +10,8 @@ gr-osmosdr
 SoapySDR/
 SoapyUHD/
 LimeSuite/
+SoapySDRUtil
+gr-limesdr/
+tmp25484
+echo
+gr-rfid/misc/data/source1

@@ -38,7 +38,7 @@ namespace gr {
 
       std::vector<int> output_sizes;
       output_sizes.push_back(sizeof(float));
-      output_sizes.push_back(sizeof(gr_complex));
+      output_sizes.push_back(sizeof(float));
 
       return gnuradio::get_initial_sptr
         (new tag_decoder_impl(sample_rate,output_sizes));
@@ -203,7 +203,7 @@ namespace gr {
 
       const gr_complex *in = (const  gr_complex *) input_items[0];
       float *out = (float *) output_items[0];
-      gr_complex *out_2 = (gr_complex *) output_items[1]; // for debugging
+      float *out_2 = (float *) output_items[1]; // for debugging
       
       int written_sync =0;
       int written = 0, consumed = 0;
@@ -342,6 +342,14 @@ namespace gr {
             {
               reader_state->gen2_logic_status = SEND_QUERY_REP;
             }
+            
+            for(int bit=0; bit<EPC_bits.size(); bit++)
+	    {
+		    out_2[written] = EPC_bits[bit];
+		    written ++;
+            }
+
+	    produce(1, written);
 
             reader_state->reader_stats.n_epc_correct+=1;
 

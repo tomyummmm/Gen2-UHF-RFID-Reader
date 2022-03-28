@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def load_bin_file(samplerate=2e6, type="complex", bfile="../data/file_source_test", plot=False, start_us=0, end_us=0):
+def load_bin_file(samplerate=6.7e6, type="complex", bfile="../data/matched_filter", plot=False, start_us=0, end_us=0):
     if type not in ["complex", "real"]:
         print("data type must be complex or real.")
         exit()
