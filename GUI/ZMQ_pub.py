@@ -1,4 +1,3 @@
-from __future__ import unicode_literals
 import zmq
 import random
 import sys
@@ -22,4 +21,4 @@ while True:
 	RSSI = str(round(random.uniform(-35,-50), 3))
 	socket.send_multipart([bytes(EPC, 'utf-8'), bytes(RSSI, 'utf-8')])
 	print('Sent')
-	time.sleep(0.03)
+	time.sleep(0.05)

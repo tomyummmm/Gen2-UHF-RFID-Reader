@@ -42,47 +42,30 @@ class ZeroMQ_Listener(QObject):
 		# Subscribe to topic
 		self.socket.setsockopt(zmq.SUBSCRIBE, b'')  # subscribe to topic of all
 		
+		# Flag for running loop
 		self.is_running = False
-		self.is_killed = False
-
+		# Passing deque into self referenced variable
 		self.in_queue = queue
 
-	def pause(self):
-		self.is_running = False
-		
-	def resume(self):
-		self.is_running = True
-		
-	def kill(self):
-		self.is_killed = True
 
 	def loop(self):
 		# Check current thread ID
 		# print(str(QThread.currentThread()))
-		while True:
-			# Receive ZMQ data
-			while self.is_running:
-				event = self.socket.poll(timeout=1000) # Poll socket for event, wait 1 second for timeout.
-				if event == 0:
-					pass
-				else:
-					EPC, RSSI = self.socket.recv_multipart()
-					EPC = EPC.decode('utf-8')
-					RSSI = float(RSSI.decode('utf-8'))
-					# print(EPC, RSSI)
-					self.in_queue.append((EPC, RSSI))
-					self.data.emit()
-					# print(self.in_queue)
-					
-			
-			# Sleep when paused
-			time.sleep(0.1)
-			print('sleep')
-			
-			# Exit when killed
-			if self.is_killed:
-				break
-		
+		# Receive ZMQ data
+		while self.is_running:
+			# Poll socket for event, wait 1 second for timeout.
+			event = self.socket.poll(timeout=1000)
+			if event == 0:
+				pass
+			else:
+				EPC, RSSI = self.socket.recv_multipart()
+				EPC = EPC.decode('utf-8')
+				RSSI = float(RSSI.decode('utf-8'))
+				# print(EPC, RSSI)
+				self.in_queue.append((EPC, RSSI))
+				self.data.emit()
+				# print(self.in_queue)
+
 		# self.finished.emit()
 
 class MainWindow(QMainWindow):
@@ -219,7 +202,7 @@ class MainWindow(QMainWindow):
 			self.ui.start_stop_btn.setText("Stop")
 			self.zeromq_listener.is_running = True
 		else:
-			self.ui.start_stop_btn.setStyleSheet("background-color: yellow")
+			self.ui.start_stop_btn.setStyleSheet("background-color: rgb(0, 255, 0)")
 			self.ui.start_stop_btn.setText("Start")
 			self.zeromq_listener.is_running = False
 			# self.thread.quit()
@@ -235,7 +218,12 @@ class MainWindow(QMainWindow):
 		
 		# Connect signals and slots
 		self.thread.started.connect(self.zeromq_listener.loop)
-		self.zeromq_listener.data.connect(self.ZMQ_simulation) # Connect data from thread to function in main
+		# Connect data from thread to function in main
+		self.zeromq_listener.data.connect(self.ZMQ_simulation) 
+		# Trigger loop whenever start / stop button is pressed
+		self.ui.start_stop_btn.clicked.connect(self.zeromq_listener.loop)
+
+		# Do not destroy thread, can be reused without setting up everything again
 		# self.zeromq_listener.finished.connect(self.thread.quit)
 		# self.zeromq_listener.finished.connect(self.zeromq_listener.deleteLater)
 		# self.thread.finished.connect(self.thread.deleteLater)
@@ -287,7 +275,7 @@ class MainWindow(QMainWindow):
 			First_Seen = datetime.today().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3] # Drop last 3 digits of microseconds to match SQL precision of 3 digit milliseconds.
 			query.bindValue(":EPC", EPC)
 			query.bindValue(":Category", 'Class 1')
-			query.bindValue(":Last_Read_From", self.ui.lineEdit_ip.text())
+			query.bindValue(":Last_Read_From", self.setting_ip.value('IP_Address'))
 			query.bindValue(":First_Seen", First_Seen)
 			query.bindValue(":Last_Seen", First_Seen)
 			query.bindValue(":Time_Since_Last_Seen", 0.00)
@@ -342,8 +330,10 @@ class MainWindow(QMainWindow):
 				# Set Value of QSettings 'IP_address'
 				self.setting_ip.setValue('IP_address', self.ui.lineEdit_ip.text())
 
+		# Press Stop button to stop loop and trigger button change
+		self.ui.start_stop_btn.setChecked(False)
+		self.program_status()
 		# Restart thread to rebind IP Address in PyZMQ
-		self.zeromq_listener.running = False
 		self.thread.quit()
 		self.thread.wait()
 		if self.thread.isFinished():

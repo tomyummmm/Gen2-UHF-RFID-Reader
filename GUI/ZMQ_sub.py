@@ -4,7 +4,7 @@ socket = context.socket(zmq.SUB)
 
 print('Connecting to IP Address')
 # Connect is for remote ip address of PUB server
-socket.connect("tcp://127.0.0.2:5556")
+socket.connect("tcp://127.0.0.1:5556")
 # socket.connect("tcp://192.168.1.119:5556")
 # socket.connect("tcp://192.168.1.103:5000")
 
