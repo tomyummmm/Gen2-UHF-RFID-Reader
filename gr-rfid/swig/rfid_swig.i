@@ -21,3 +21,4 @@ GR_SWIG_BLOCK_MAGIC2(rfid, reader);
 GR_SWIG_BLOCK_MAGIC2(rfid, gate);
 %include "rfid/tag_decoder.h"
 GR_SWIG_BLOCK_MAGIC2(rfid, tag_decoder);
+
