@@ -4,33 +4,22 @@
 #
 #
 #
-# Updates: https://github.com/guruofquality/grextras/wiki
-# Updates: https://github.com/balint256/gr-baz.git
 #
 #
 #
-# Exit function--Id like to be able to upload stats to a website somewhere...
+#
+#
+#
 #
 function doexit
 {
 	cat <<"!EOF!"
 
 =======================================================================
-If you have found this script useful and time-saving, consider a 
-donation to help me keep build-gnuradio, simple_ra, SIDsuite,
-meteor_detector, simple_fm_rcv, and multimode maintained and up to date.
-A simple paypal transfer to mleech@ripnet.com is all you need to do.
+
 ======================================================================
 !EOF!
 
-	# echo -n "Send success/fail info to sbrac.org? y / n "
-	# read ans
-	# 	case $ans in
-	# 		y|Y|YES|yes|Yes)
-	# 			wget http://www.sbrac.org/bgrstats.php?status="$1"?systype=${SYSTYPE}?sysinfo="`uname -a`" >/dev/null 2>&1
-	# 			echo Thanks
-	# 			;;
-	# 	esac
 	exit
 }
 	
@@ -74,8 +63,10 @@ mod_sysctl      - modify SYSCTL for larger net buffers
 SoapySDR        - build only SoapySDR
 SoapyUHD		- build only SoapyUHD plugin
 LimeSuite       - build only LimeSuite
+gr-limesdr      - build only gr-limesdr
 G2RFID          - build only Gen2 UHF RFID Reader
 pythonpath      - print out PYTHONPATH
+python_packages	- install Python3 required packages
 setenv          - set environment variables for terminal and graphical GNU Radio Companion
 uninstall       - uninstall all packages, remove all downloaded packages and build files
 !EOF!
@@ -98,7 +89,7 @@ UTAG=None
 GTAG=None
 export LC_LANG=C
 EXTRAS=""
-PULLED_LIST="gnuradio uhd rtl-sdr gr-osmosdr gr-iqbal hackrf bladeRF airspyone_host SoapySDR SoapyUHD LimeSuite" # gr-baz not installed?
+PULLED_LIST="gnuradio uhd rtl-sdr gr-osmosdr gr-iqbal hackrf bladeRF airspyone_host SoapySDR SoapyUHD LimeSuite gr-limesdr" # gr-baz not installed?
 which python3 >/dev/null 2>&1
 if [ $? -eq 0 ]
 then
@@ -237,7 +228,7 @@ echo This script has been modified and only supports Ubuntu 18.04 / 20.04 LTS.
 echo ==============================================================================
 echo
 echo This script will install UHD driver, GNU Radio, SoapySDR, SoapyUHD, LimeSuite, 
-echo Gen2 UHF RFID Reader, rtl-sdr, gr-osmosdr, gr-iqbal, hackrf, bladeRF,
+echo gr-limesdr, Gen2 UHF RFID Reader, rtl-sdr, gr-osmosdr, gr-iqbal, hackrf, bladeRF,
 echo airspyone_host from current GIT sources with some version control.
 echo You will require Internet access from the computer on which this
 echo script runs.  You will also require SUDO access.  You will require
@@ -538,6 +529,7 @@ function gitfetch {
 	echo "SoapySDR           master"
 	echo "SoapyUHD           master"
 	echo "LimeSuite          stable"
+	echo "gr-limesdr         gr-3.8"
 	echo -n "Is this OK? (yes / no / skip) "
 	read ans
 	
@@ -644,6 +636,16 @@ function gitfetch {
 	git clone https://github.com/myriadrf/LimeSuite.git >>$LOGDEV 2>&1
 	cd LimeSuite
 	git checkout stable >>$LOGDEV 2>&1
+	cd ..
+
+	#
+	# GIT the gr-limesdr source tree
+	#
+	rm -rf gr-limesdr
+	my_echo -n Fetching gr-limesdr via GIT...
+	git clone https://github.com/myriadrf/gr-limesdr.git >>$LOGDEV 2>&1
+	cd gr-limesdr
+	git checkout gr-3.8 >>$LOGDEV 2>&1
 	cd ..
 
 	my_echo Done
@@ -1126,6 +1128,43 @@ function G2RFID {
 	my_echo Done building/installing Gen2 UHF RFID Reader
 }
 
+function gr-limesdr {
+	sudocheck
+	#
+	# gr-limesdr build and install
+	#
+	cd "$CWD"
+	if [ ! -d gr-limesdr ]
+	then
+		my_echo You do not appear to have the \'gr-limesdr\' directory
+		my_echo Fetching gr-limesdr via GIT...
+		git clone https://github.com/myriadrf/gr-limesdr.git >>$LOGDEV 2>&1
+		cd gr-limesdr
+		git checkout gr-3.8 >>$LOGDEV 2>&1
+		cd "$CWD"
+	fi
+	my_echo Building gr-limesdr...
+	my_echo "=============> THIS WILL TAKE SOME TIME <============="
+	my_echo
+	cd gr-limesdr
+	rm -rf build
+	mkdir build
+	cd build
+	cmake $CMAKE_FLAG1 $CMAKE_FLAG2 $CMAKE_FLAG3 ../ >>$LOGDEV 2>&1
+	make clean >>$LOGDEV 2>&1
+	make $JFLAG >>$LOGDEV 2>&1
+	if [ $? -ne 0  ]
+	then
+		my_echo gr-limesdr build apparently failed
+		my_echo Exiting gr-limesdr build
+		doexit gr-limesdr-BUILD-FAIL1
+	fi
+
+	sudo make $JFLAG install >>$LOGDEV 2>&1
+	sudo ldconfig >>$LOGDEV 2>&1 
+	my_echo Done building/installing gr-limesdr
+}
+
 function mod_groups {
 	sudocheck
 	#
@@ -1282,6 +1321,17 @@ function pythonpath {
 	echo in your .bashrc or equivalent file prior to attempting to run
 	echo any GNU Radio applications or GNU Radio Companion.
 	echo "*************************************************************"
+}
+
+function python_packages {
+	#
+	# Install Python3 Packages
+	#
+	cd "$CWD"
+	my_echo Installing Python3 Packages required in requirements.txt
+	my_echo "=============> THIS WILL TAKE SOME TIME <============="
+	python3 -m pip install -r requirements.txt
+	my_echo Done installing Python3 Packages
 }
 
 function setenv {
@@ -1473,7 +1523,7 @@ function all {
 		gitfetch
 	fi
 	rm -f touch$$
-	for fcn in uhd_build firmware gnuradio_build rtl_build SoapySDR SoapyUHD LimeSuite G2RFID mod_groups mod_udev mod_sysctl setenv extras
+	for fcn in uhd_build firmware gnuradio_build rtl_build SoapySDR SoapyUHD LimeSuite gr-limesdr G2RFID python_packages mod_groups mod_udev mod_sysctl setenv extras
 	do
 		my_echo Starting function $fcn at: `date`
 		cd "$CWD"
@@ -1609,6 +1659,17 @@ function uninstall {
 	fi
 
 	cd "$CWD"
+	if [ -d gr-limesdr ]
+	then
+		my_echo Uninstalling gr-limesdr...
+		cd gr-limesdr
+		cd build
+		sudo make $DRYRUN $JFLAG uninstall >>$LOGDEV 2>&1
+		my_echo Done uninstalling gr-limesdr
+		my_echo
+	fi
+
+	cd "$CWD"
 	if [ -d gr-rfid/build/ ]
 	then
 		my_echo Uninstalling gr-rfid...
@@ -1643,7 +1704,7 @@ function uninstall {
 	fi
 	
 	cd "$CWD"
-	my_echo Done uninstalling uhd, gnuradio, rtl-sdr, gr-osmosdr, gr-iqbal, hackrf, bladeRF, airspyone_host, SoapySDR, SoapyUHD, LimeSuite, G2RFID.
+	my_echo Done uninstalling uhd, gnuradio, rtl-sdr, gr-osmosdr, gr-iqbal, hackrf, bladeRF, airspyone_host, SoapySDR, SoapyUHD, LimeSuite, gr-limesdr, G2RFID.
 	my_echo
 	my_echo Removing all downloaded packages and build files.
 	if [ "$DRYRUN" != -n ]
@@ -1657,6 +1718,7 @@ function uninstall {
 		sudo rm -rf SoapySDR
 		sudo rm -rf SoapyUHD
 		sudo rm -rf LimeSuite
+		sudo rm -rf gr-limesdr
 		sudo rm -rf gr-rfid/build
 		sudo rm -rf uhd
 		sudo rm -rf gnuradio

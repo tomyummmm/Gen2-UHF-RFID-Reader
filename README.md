@@ -44,15 +44,16 @@ The whole process may take up to two hours to complete, depending on the capabil
 Package           | Branch
 ------------------|-----------------
 GNU Radio         | maint-3.8
-UHD 			  | 3.15 LTS
-rtl-sdr 		  | master
-gr-osmosdr 		  | gr3.8
-gr-iqbal 		  | gr3.8
-hackrf     		  | master
+UHD               | 3.15 LTS
+rtl-sdr           | master
+gr-osmosdr        | gr3.8
+gr-iqbal          | gr3.8
+hackrf            | master
 bladeRF           | master
 airspyone_host    | master
 SoapySDR          | master
-LimeSuite 		  | stable
+LimeSuite         | stable
+gr-limesdr        | gr-3.8
 
 1. Grant permissions 
 ```sh
@@ -135,12 +136,14 @@ gnuradio_build  | Build only GNU Radio
 rtl_build       | Build rtl-sdr + gr-osmosdr + gr-iqbal + hackrf + bladeRF + airspyone_host
 SoapySDR        | Build only SoapySDR
 LimeSuite       | Build only LimeSuite
+gr-limesdr      | Build only gr-limesdr
 G2RFID          | Build Gen2 UHF RFID Reader
 mod_groups      | Modify the /etc/groups and add user to group 'usrp'
 mod_udev        | Add UDEV rule for USRP1
 mod_sysctl      | Modify SYSCTL for larger net buffers
-pythonpath		| Print out PYTHONPATH
-setenv          | set environment variables for terminal and graphical GNU Radio Companion
+pythonpath      | Print out PYTHONPATH
+python_packages | Install Python3 required packages
+setenv          | Set environment variables for terminal and graphical GNU Radio Companion
 uninstall       | Uninstall all packages, remove all downloaded packages and build files
 
 ## Checking the installation

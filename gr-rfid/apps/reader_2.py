@@ -49,6 +49,10 @@ def zmq_consumer(pub):
         if len(epc) == 128:
             # convert bit string to hex starting
             epc_hex = hex(int(epc, 2))[2:]
+            print(epc_hex)
+            # Remove PC (starting 4 hex digits) and CRC16 (last 4 hex digits)
+            epc_hex = epc_hex[4:-4]
+            
             RSSI = str(round(random.uniform(-35,-50), 3))
             print(epc_hex)
             pub.publish(epc_0x_str=epc_hex, rssi_str=RSSI, time_delay_s=2)

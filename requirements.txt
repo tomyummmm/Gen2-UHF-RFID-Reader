@@ -1,0 +1,4 @@
+matplotlib==3.5.1
+numpy==1.17.4
+PySide2==5.15.2
+pyzmq==18.1.1
