@@ -1,4 +1,5 @@
 __pycache__/
+*.py[cod]
 gr-rfid/build/
 airspyone_host/
 bladeRF/
