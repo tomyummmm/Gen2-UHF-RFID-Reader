@@ -32,6 +32,7 @@ import random
 # data plot lib
 # import cv2
 import numpy as np
+import time
 
 
 # data transfer code
@@ -39,6 +40,9 @@ def zmq_consumer(pub):
     context = zmq.Context()
     results_receiver = context.socket(zmq.PULL)
     results_receiver.connect(socket_str)
+    # Sleep for 0.5 seconds to ensure connection is finished, 
+    # .connect function returns before connection is fully made, causing first set of data to miss.
+    time.sleep(0.5)
     while True:
         raw_data = results_receiver.recv()
         # char_bits
@@ -52,7 +56,7 @@ def zmq_consumer(pub):
             print(epc_hex)
             # Remove PC (starting 4 hex digits) and CRC16 (last 4 hex digits)
             epc_hex = epc_hex[4:-4]
-            
+            # Simulate RSSI data with random values
             RSSI = str(round(random.uniform(-35,-50), 3))
             print(epc_hex)
             pub.publish(epc_0x_str=epc_hex, rssi_str=RSSI, time_delay_s=2)
@@ -251,11 +255,11 @@ if __name__ == '__main__':
     main_block = reader_top_block()
     main_block.start()
     
-    pub = Publisher(ip="127.0.0.1", port="5556")
+    pub = Publisher(ip="*", port="5556")
 
     # start the receiver socket
     zmq_consumer(pub)
-    # #
+    #
     while(1):
         inp = input("'Q' to quit \n")
         if (inp == "q" or inp == "Q"):

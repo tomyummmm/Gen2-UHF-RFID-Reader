@@ -136,7 +136,8 @@ namespace gr {
     const int TAG_PREAMBLE[] = {1,1,0,1,0,0,1,0,0,0,1,1};
 
     // Gate block parameters
-    const float THRESH_FRACTION = 0.75;     
+    // Threshold set to 0.5 for offline demo
+    const float THRESH_FRACTION = 0.5;     
     const int WIN_SIZE_D         = 250; 
 
     // Duration in which dc offset is estimated (T1_D is 250)
