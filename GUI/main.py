@@ -1,7 +1,7 @@
 ################################################################################
 ##
-## BY: WANDERSON M.PIMENTA
-## PROJECT MADE WITH: Qt Designer and PySide2
+## BY: Mervin Ling Tong Yang
+## PROJECT MADE WITH: Qt Designer, PySide2, PyZMQ and sqlite3
 ## V: 1.0.0
 ##
 ################################################################################
