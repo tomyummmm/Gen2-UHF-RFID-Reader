@@ -223,69 +223,109 @@ namespace gr {
 
       std::vector<float> EPC_bits;
 
+      // Old RN16 decoding method
+      // if (reader_state->decoder_status == DECODER_DECODE_RN16 && ninput_items[0] >= reader_state->n_samples_to_ungate)
+      // {
+      //   RN16_index = tag_sync(in,ninput_items[0]);
+      //   //std::cout<<in<<std::endl;
+      //   //std::cout<<n_samples_to_ungate<<std::endl;
+      //   //std::cout<<ninput_items[0]<<std::endl;
+
+
+      //   /*
+      //   for (int j = 0; j < ninput_items[0]; j ++ )
+      //   {
+      //     out_2[written_sync] = in[j];
+      //      written_sync ++;
+      //   }
+      //   produce(1,written_sync);
+      //   */
+
+
+
+      //   for (float j = RN16_index; j < ninput_items[0]; j += n_samples_TAG_BIT/2 )
+      //   {
+      //     number_of_half_bits++;
+      //     int k = round(j);
+      //     RN16_samples_complex.push_back(in[k]);
+
+
+      //     //out_2[written_sync] = in[j];
+      //      //written_sync ++;
+
+      //     /* txy
+      //     out_2[written_sync] = 'a';
+      //     written_sync ++;*/
+
+      //     //std::cout<<written_sync<<std::endl;
+
+
+      //     if (number_of_half_bits == 2*(RN16_BITS-1))
+      //     {
+      //       //out_2[written_sync] = h_est;
+      //        //written_sync ++;
+      //       // produce(1,written_sync);
+      //       break;
+      //     }
+      //   }
+
+      //   // RN16 bits are passed to the next block for the creation of ACK message
+      //   if (number_of_half_bits == 2*(RN16_BITS-1))
+      //   {
+      //     GR_LOG_INFO(d_debug_logger, "RN16 DECODED");
+      //     RN16_bits  = tag_detection_RN16(RN16_samples_complex);
+
+      //     for(int bit=0; bit<RN16_bits.size(); bit++)
+      //     {
+      //       out[written] =  RN16_bits[bit];
+      //       written ++;
+      //       //out_2[written_sync] = RN16_bits[bit];
+      //       //written_sync ++;
+      //     }
+      //     produce(0,written);
+      //     //produce(1,written_sync);
+      //     reader_state->gen2_logic_status = SEND_ACK;
+      //   }
       // Processing only after n_samples_to_ungate are available and we need to decode an RN16
+      // GR_LOG_INFO(d_logger, ninput_items[0])
       if (reader_state->decoder_status == DECODER_DECODE_RN16 && ninput_items[0] >= reader_state->n_samples_to_ungate)
       {
         RN16_index = tag_sync(in,ninput_items[0]);
-        //std::cout<<in<<std::endl;
-        //std::cout<<n_samples_to_ungate<<std::endl;
-        //std::cout<<ninput_items[0]<<std::endl;
-
-
-        /*
-        for (int j = 0; j < ninput_items[0]; j ++ )
-        {
-          out_2[written_sync] = in[j];
-           written_sync ++;
-        }
-        produce(1,written_sync);
-        */
-
-
-
-        for (float j = RN16_index; j < ninput_items[0]; j += n_samples_TAG_BIT/2 )
-        {
-          number_of_half_bits++;
-          int k = round(j);
-          RN16_samples_complex.push_back(in[k]);
-
-
-          //out_2[written_sync] = in[j];
-           //written_sync ++;
-
-/* txy
-          out_2[written_sync] = 'a';
-          written_sync ++;*/
-
-          //std::cout<<written_sync<<std::endl;
-
-
-          if (number_of_half_bits == 2*(RN16_BITS-1))
-          {
-            //out_2[written_sync] = h_est;
-             //written_sync ++;
-            // produce(1,written_sync);
-            break;
-          }
-        }
 
         // RN16 bits are passed to the next block for the creation of ACK message
-        if (number_of_half_bits == 2*(RN16_BITS-1))
-        {
-          GR_LOG_INFO(d_debug_logger, "RN16 DECODED");
-          RN16_bits  = tag_detection_RN16(RN16_samples_complex);
+        if ((RN16_index >= 0) && (RN16_index + (n_samples_TAG_BIT)*(RN16_BITS-1) <= ninput_items[0]))
+        {  
+          GR_LOG_INFO(d_debug_logger, "RN16 DECODED")
+          // GR_LOG_INFO(d_logger, RN16_index)
 
-          for(int bit=0; bit<RN16_bits.size(); bit++)
+          for (float j = RN16_index; j < ninput_items[0]; j += n_samples_TAG_BIT )
           {
-            out[written] =  RN16_bits[bit];
+            number_of_half_bits+=2;
+            int k = round(j);
+            // GR_LOG_INFO(d_logger, in[k]);
+            float first_half = std::abs(in[k]);
+            // GR_LOG_INFO(d_logger, first_half); 
+            k = round(j + n_samples_TAG_BIT/2);
+            // GR_LOG_INFO(d_logger, in[k])
+            float sec_half = std::abs(in[k]);
+            // GR_LOG_INFO(d_logger, sec_half);
+
+            if (((first_half - sec_half) < -0.4 ) || ((first_half - sec_half) >0.4)){
+              out[written] = 0;  
+            }
+            else
+            { 
+              out[written] = 1; 
+            }
             written ++;
-            //out_2[written_sync] = RN16_bits[bit];
-            //written_sync ++;
+            if (number_of_half_bits == 2*(RN16_BITS-1))
+            {            
+              break;
+            }
           }
           produce(0,written);
-          //produce(1,written_sync);
           reader_state->gen2_logic_status = SEND_ACK;
-        }
+        }      
         else
         {
           reader_state->reader_stats.cur_slot_number++;
@@ -315,7 +355,7 @@ namespace gr {
         reader_state->reader_stats.cur_slot_number++;
 
 
-        EPC_index = tag_sync(in,ninput_items[0]);
+        EPC_index = tag_sync(in,ninput_items[0]) + int(n_samples_TAG_BIT/2); 
 
         for (int j = 0; j < ninput_items[0]; j++ )
         {
