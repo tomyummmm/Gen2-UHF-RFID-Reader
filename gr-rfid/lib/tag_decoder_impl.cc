@@ -298,6 +298,8 @@ namespace gr {
           GR_LOG_INFO(d_debug_logger, "RN16 DECODED")
           // GR_LOG_INFO(d_logger, RN16_index)
 
+          std::cout << "RN16 : ";
+
           for (float j = RN16_index; j < ninput_items[0]; j += n_samples_TAG_BIT )
           {
             number_of_half_bits+=2;
@@ -312,14 +314,17 @@ namespace gr {
 
             if (((first_half - sec_half) < -0.4 ) || ((first_half - sec_half) >0.4)){
               out[written] = 0;  
+              std::cout << "0"; 
             }
             else
             { 
               out[written] = 1; 
+              std::cout << "1"; 
             }
             written ++;
             if (number_of_half_bits == 2*(RN16_BITS-1))
             {            
+              std::cout << std::endl;
               break;
             }
           }
@@ -420,8 +425,17 @@ namespace gr {
             {
               result += std::pow(2,7-i) * EPC_bits[104+i] ;
             }
+            std::cout << "EPC : ";
+            for (int i =0; i < 128; i ++)
+            {
+              if (EPC_bits[i] == 0)
+                std::cout << "0"; 
+              else
+                std::cout << "1"; 
+            }
+            std::cout << std::endl;
 
-            GR_LOG_INFO(d_debug_logger, "EPC CORRECTLY DECODED, TAG ID : " + std::to_string(result));
+            GR_LOG_INFO(d_logger, "EPC CORRECTLY DECODED, TAG ID : " + std::to_string(result));
 
 
             // Save part of Tag's EPC message (EPC[104:111] in decimal) + number of reads
@@ -455,7 +469,7 @@ namespace gr {
             }
 
 
-            GR_LOG_INFO(d_debug_logger, "EPC FAIL TO DECODE");
+            GR_LOG_INFO(d_logger, "EPC FAIL TO DECODE");
           }
         }
         else

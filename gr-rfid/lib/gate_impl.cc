@@ -106,7 +106,9 @@ namespace gr {
         gettimeofday (&reader_state-> reader_stats.end, NULL);
         std::cout << "| Execution time : " << reader_state-> reader_stats.end.tv_sec - reader_state-> reader_stats.start.tv_sec << " seconds" << std::endl;
         GR_LOG_INFO(d_logger, "Termination");
-       }
+      }
+
+      usleep(500000);//only for file recordings
 
       // Gate block is controlled by the Gen2 Logic block
       if(reader_state->gate_status == GATE_SEEK_EPC)
