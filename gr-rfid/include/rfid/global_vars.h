@@ -133,11 +133,11 @@ namespace gr {
     const int Q_UPDN[3][3]  = { {1,1,0}, {0,0,0}, {0,1,1} };
 
     // FM0 encoding preamble sequences
-    const int TAG_PREAMBLE[] = {1,1,0,1,0,0,1,0,0,0,1,1};
+    const int TAG_PREAMBLE[] = {1,1,-1,1,-1,-1,1,-1,-1,-1,1,1};
 
     // Gate block parameters
     // Threshold set to 0.5 for offline demo
-    const float THRESH_FRACTION = 0.5;     
+    const float THRESH_FRACTION = 0.7;     
     const int WIN_SIZE_D         = 250; 
 
     // Duration in which dc offset is estimated (T1_D is 250)

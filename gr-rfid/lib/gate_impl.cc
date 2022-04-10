@@ -138,9 +138,10 @@ namespace gr {
           if( !(reader_state->gate_status == GATE_OPEN) )
           {
             //Tracking DC offset (only during T1)
-            dc_est =  dc_est + (in[i] - dc_samples[dc_index])/std::complex<float>(dc_length,0);  
-            dc_samples[dc_index] = in[i]; 
-            dc_index = (dc_index + 1) % dc_length;
+            // dc_est =  dc_est + (in[i] - dc_samples[dc_index])/std::complex<float>(dc_length,0);  
+            // dc_samples[dc_index] = in[i]; 
+            // dc_index = (dc_index + 1) % dc_length;
+            dc_est = 0;
           
             n_samples++;
 
@@ -171,7 +172,7 @@ namespace gr {
 
 
               reader_state->magn_squared_samples.push_back(std::norm(in[i] - dc_est));
-              out[written] = in[i] - dc_est;  
+              out[written] = in[i];  
               written++;
 
               num_pulses = 0; 
@@ -184,7 +185,7 @@ namespace gr {
             n_samples++;
 
             reader_state->magn_squared_samples.push_back(std::norm(in[i] - dc_est));
-            out[written] = in[i] - dc_est; // Remove offset from complex samples           
+            out[written] = in[i]; // Remove offset from complex samples           
             written++;
             if (n_samples >= reader_state->n_samples_to_ungate)
             {

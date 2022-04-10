@@ -79,7 +79,7 @@ namespace gr {
     int tag_decoder_impl::tag_sync(const gr_complex * in , int size)
     {
       int max_index = 0;
-      float max = 0,corr;
+      float max = 0.1,corr;
       gr_complex corr2;
 
       // Do not have to check entire vector (not optimal)
@@ -105,7 +105,7 @@ namespace gr {
 
 
       // Shifted received waveform by n_samples_TAG_BIT/2
-      max_index = max_index + TAG_PREAMBLE_BITS * n_samples_TAG_BIT + n_samples_TAG_BIT/2;
+      max_index = max_index + TAG_PREAMBLE_BITS * n_samples_TAG_BIT;
       return max_index;
     }
 
