@@ -435,8 +435,9 @@ namespace gr {
             }
             std::cout << std::endl;
 
-            GR_LOG_INFO(d_logger, "EPC CORRECTLY DECODED, TAG ID : " + std::to_string(result));
-
+            // GR_LOG_INFO(d_logger, "EPC CORRECTLY DECODED, TAG ID : " + std::to_string(result));
+            std::cout << "EPC CORRECTLY DECODED" << std::endl;
+            std::cout << "EPC id : " << std::hex << result << std::endl;
 
             // Save part of Tag's EPC message (EPC[104:111] in decimal) + number of reads
             std::map<int,int>::iterator it = reader_state->reader_stats.tag_reads.find(result);

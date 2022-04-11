@@ -53,12 +53,12 @@ def zmq_consumer(pub):
         if len(epc) == 128:
             # convert bit string to hex starting
             epc_hex = hex(int(epc, 2))[2:]
-            print(epc_hex)
+            print("32 digit raw data: ", epc_hex)
             # Remove PC (starting 4 hex digits) and CRC16 (last 4 hex digits)
             epc_hex = epc_hex[4:-4]
             # Simulate RSSI data with random values
             RSSI = str(round(random.uniform(-35,-50), 3))
-            print(epc_hex)
+            print("24 digit EPC: ", epc_hex)
             pub.publish(epc_0x_str=epc_hex, rssi_str=RSSI, time_delay_s=2)
 
 
@@ -91,7 +91,7 @@ class reader_top_block(gr.top_block):
         # self.file_sink_source         = blocks.file_sink(gr.sizeof_gr_complex*1, "../misc/data/source", False)
         cwd = os.getcwd()
         # print(cwd)
-        self.file_sink_source = blocks.file_sink(gr.sizeof_gr_complex*1, cwd + os.sep + "misc/data/source_i2r", False)
+        self.file_sink_source = blocks.file_sink(gr.sizeof_gr_complex*1, cwd + os.sep + "../misc/data/source_i2r", False)
         # self.file_sink_matched_filter = blocks.file_sink(gr.sizeof_gr_complex*1, cwd + os.sep + "misc/data/matched_filter", False)
         # self.file_sink_gate = blocks.file_sink(gr.sizeof_gr_complex*1, cwd + os.sep + "misc/data/gate", False)
         # self.file_sink_decoder = blocks.file_sink(gr.sizeof_gr_complex*1, cwd + os.sep + "misc/data/decoder", False)
@@ -175,8 +175,8 @@ class reader_top_block(gr.top_block):
 
         else :  # Offline Data
             print("Use offline data.")
-            self.file_source = blocks.file_source(gr.sizeof_gr_complex*1, cwd + os.sep + "misc/data/file_source_test",False)   ## instead of uhd.usrp_source
-            self.file_sink = blocks.file_sink(gr.sizeof_gr_complex*1,  cwd + os.sep + "misc/data/file_sink", False)     ## instead of uhd.usrp_sink
+            self.file_source = blocks.file_source(gr.sizeof_gr_complex*1, cwd + os.sep + "../misc/data/file_source_test",False)   ## instead of uhd.usrp_source
+            self.file_sink = blocks.file_sink(gr.sizeof_gr_complex*1,  cwd + os.sep + "../misc/data/file_sink", False)     ## instead of uhd.usrp_sink
 
             ######## Connections #########
             self.connect(self.file_source, self.matched_filter)
